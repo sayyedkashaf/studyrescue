@@ -1,0 +1,36 @@
+# Environment
+.env
+
+# Database
+data/*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Evaluation (real data)
+eval/labeled/*.csv
+!eval/labeled/.gitkeep
+
+# Reports are kept
+# eval/reports/
