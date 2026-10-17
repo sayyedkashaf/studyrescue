@@ -16,10 +16,9 @@ from app.db import engine, create_tables, Base
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_db():
-    """Create all tables before the test module runs, drop after."""
+    """Ensure all tables are created before tests run."""
     create_tables()
     yield
-    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture()
