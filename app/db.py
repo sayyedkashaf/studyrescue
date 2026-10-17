@@ -4,7 +4,7 @@ Uses a single SQLite file as specified in config.DATABASE_URL.
 """
 
 from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from app.config import DATABASE_URL
@@ -18,6 +18,15 @@ engine = create_engine(
     connect_args={"check_same_thread": False},  # required for SQLite
     echo=False,
 )
+
+
+@event.listens_for(engine, "connect")
+def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
+    # SQLite ignores foreign keys unless switched on for every connection
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 

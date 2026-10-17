@@ -96,3 +96,62 @@ def test_health_response_body(client):
     assert data["status"] == "ok"
     assert data["app_name"]  # non-empty
     assert data["database"] == "connected"
+
+
+# ── Foreign Key & Cascade Enforcement ────────────────────────────────
+
+def test_foreign_key_enforced_nonexistent_user():
+    """Inserting a Task with a user_id that does not exist must raise an IntegrityError."""
+    from sqlalchemy.exc import IntegrityError
+    from app.models import Task
+    from app.db import SessionLocal
+
+    session = SessionLocal()
+    try:
+        orphan_task = Task(
+            user_id=999999,  # does not exist
+            title="Orphan Task",
+        )
+        session.add(orphan_task)
+        with pytest.raises(IntegrityError):
+            session.commit()
+    finally:
+        session.rollback()
+        session.close()
+
+
+def test_cascade_delete_user_deletes_tasks():
+    """Deleting a user must cascade delete their associated tasks."""
+    from app.models import User, Task
+    from app.db import SessionLocal
+
+    session = SessionLocal()
+    try:
+        user = User(
+            email="fk_cascade_test@example.com",
+            password_hash="hashedpass",
+            display_name="Cascade Tester",
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+
+        task = Task(
+            user_id=user.id,
+            title="Cascade Task",
+        )
+        session.add(task)
+        session.commit()
+        task_id = task.id
+
+        assert session.get(Task, task_id) is not None
+
+        # Delete user
+        session.delete(user)
+        session.commit()
+
+        # Task must be gone
+        assert session.get(Task, task_id) is None
+    finally:
+        session.close()
+
