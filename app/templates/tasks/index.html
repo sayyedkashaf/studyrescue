@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks – {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="tasks-page">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h1>Tasks</h1>
+      <p>Manage your academic commitments, track actual effort, and monitor deadlines.</p>
+    </div>
+  </div>
+
+  <!-- Manual Add Task Card -->
+  <div class="card" id="add-task-card">
+    <h2 class="card-title">Add a Task Manually</h2>
+    {% if error %}
+    <div class="alert alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success" role="alert">{{ success }}</div>
+    {% endif %}
+
+    <form method="post" action="/tasks">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label for="task-title">Title *</label>
+          <input
+            type="text"
+            id="task-title"
+            name="title"
+            class="form-control"
+            placeholder="e.g. Linear Algebra Assignment 2"
+            value="{{ form_data.title or '' }}"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label for="task-subject">Subject</label>
+          <input
+            type="text"
+            id="task-subject"
+            name="subject"
+            class="form-control"
+            placeholder="e.g. Maths, CS101"
+            value="{{ form_data.subject or '' }}"
+          >
+        </div>
+        <div class="form-group">
+          <label for="task-kind">Kind</label>
+          <select id="task-kind" name="kind" class="form-control">
+            <option value="assignment" {% if form_data.kind == 'assignment' %}selected{% endif %}>Assignment</option>
+            <option value="exam" {% if form_data.kind == 'exam' %}selected{% endif %}>Exam</option>
+            <option value="submission" {% if form_data.kind == 'submission' %}selected{% endif %}>Submission</option>
+            <option value="other" {% if form_data.kind == 'other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="task-deadline">Deadline</label>
+          <input
+            type="date"
+            id="task-deadline"
+            name="deadline"
+            class="form-control"
+            value="{{ form_data.deadline or '' }}"
+          >
+        </div>
+        <div class="form-group">
+          <label for="task-est-hours">Estimated Hours</label>
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            id="task-est-hours"
+            name="estimated_hours"
+            class="form-control"
+            placeholder="e.g. 4.0"
+            value="{{ form_data.estimated_hours or '' }}"
+          >
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label for="task-description">Notes / Description</label>
+          <input
+            type="text"
+            id="task-description"
+            name="description"
+            class="form-control"
+            placeholder="Optional details or instructions"
+            value="{{ form_data.description or '' }}"
+          >
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="create-task-submit">Create Task</button>
+    </form>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 0.25rem;">Status:</span>
+      <a href="/tasks?status=all{% if current_subject %}&subject={{ current_subject }}{% endif %}"
+         class="filter-link {% if current_status == 'all' or not current_status %}active{% endif %}">All</a>
+      <a href="/tasks?status=open{% if current_subject %}&subject={{ current_subject }}{% endif %}"
+         class="filter-link {% if current_status == 'open' %}active{% endif %}">Open</a>
+      <a href="/tasks?status=overdue{% if current_subject %}&subject={{ current_subject }}{% endif %}"
+         class="filter-link {% if current_status == 'overdue' %}active{% endif %}">Overdue</a>
+      <a href="/tasks?status=completed{% if current_subject %}&subject={{ current_subject }}{% endif %}"
+         class="filter-link {% if current_status == 'completed' %}active{% endif %}">Completed</a>
+    </div>
+
+    <!-- Subject Filter -->
+    <div class="filter-group">
+      <label for="subject-select" style="margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Subject:</label>
+      <select id="subject-select" class="form-control" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.85rem;" onchange="window.location.href=this.value">
+        <option value="/tasks?status={{ current_status or 'all' }}">All Subjects</option>
+        {% for s in user_subjects %}
+        <option value="/tasks?status={{ current_status or 'all' }}&subject={{ s }}" {% if current_subject == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      {% if current_subject or (current_status and current_status != 'all') %}
+      <a href="/tasks" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">Reset</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tasks List -->
+  {% if tasks %}
+  <div class="task-list">
+    {% for task in tasks %}
+    <div class="task-card {% if task.is_overdue %}is-overdue{% endif %} {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
+      <div class="task-header">
+        <div>
+          <span class="task-title">{{ task.title }}</span>
+          <div class="task-badges" style="margin-top: 0.35rem;">
+            {% if task.subject %}
+            <span class="badge badge-subject">{{ task.subject }}</span>
+            {% endif %}
+            <span class="badge badge-{{ task.status }}">{{ task.status | replace('_', ' ') }}</span>
+            {% if task.is_overdue %}
+            <span class="badge badge-overdue">Overdue</span>
+            {% endif %}
+            {% if task.kind %}
+            <span class="badge badge-pending">{{ task.kind }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="task-meta">
+        {% if task.deadline %}
+        <span>Deadline: <strong>{{ task.deadline.strftime('%d %b %Y') }}</strong></span>
+        {% else %}
+        <span>Deadline: <em>None</em></span>
+        {% endif %}
+
+        {% if task.estimated_hours is not none %}
+        <span>Estimate: <strong>{{ "%.1f"|format(task.estimated_hours) }} hrs</strong></span>
+        {% endif %}
+
+        {% if task.actual_hours is not none %}
+        <span>Actual: <strong>{{ "%.1f"|format(task.actual_hours) }} hrs</strong></span>
+        {% endif %}
+
+        <span>Source: {{ task.source }}</span>
+      </div>
+
+      {% if task.description %}
+      <div class="task-description">{{ task.description }}</div>
+      {% endif %}
+
+      <div class="task-actions">
+        <!-- Start Action -->
+        {% if task.status == 'pending' %}
+        <form method="post" action="/tasks/{{ task.id }}/start">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-secondary btn-sm" id="start-btn-{{ task.id }}">Start</button>
+        </form>
+        {% endif %}
+
+        <!-- Complete Action (with optional actual hours input) -->
+        {% if task.status in ['pending', 'in_progress'] %}
+        <form method="post" action="/tasks/{{ task.id }}/complete" class="complete-form-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            name="actual_hours"
+            placeholder="hrs"
+            title="Actual hours spent"
+            aria-label="Actual hours spent"
+            value="{% if task.estimated_hours %}{{ task.estimated_hours }}{% endif %}"
+          >
+          <button type="submit" class="btn btn-secondary btn-sm" id="complete-btn-{{ task.id }}">Complete</button>
+        </form>
+        {% endif %}
+
+        <!-- Edit Link -->
+        <a href="/tasks/{{ task.id }}/edit" class="btn btn-secondary btn-sm" id="edit-btn-{{ task.id }}">Edit</a>
+
+        <!-- Cancel Action -->
+        {% if task.status in ['pending', 'in_progress'] %}
+        <form method="post" action="/tasks/{{ task.id }}/cancel">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-secondary btn-sm" id="cancel-btn-{{ task.id }}">Cancel</button>
+        </form>
+        {% endif %}
+
+        <!-- Delete with Confirmation Step -->
+        <a href="/tasks/{{ task.id }}/delete" class="btn btn-secondary btn-sm" style="color: var(--error-text);" id="delete-link-{{ task.id }}">Delete</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <h3>No tasks found</h3>
+    {% if current_status or current_subject %}
+    <p>No tasks matched your active filter.</p>
+    <a href="/tasks" class="btn btn-secondary btn-sm">Clear Filters</a>
+    {% else %}
+    <p>You have not added any tasks yet. Use the form above to add an assignment or exam.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

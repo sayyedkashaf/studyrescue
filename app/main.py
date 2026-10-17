@@ -18,6 +18,7 @@ from app.models import User
 from app.auth.deps import get_current_user, get_current_user_optional
 from app.auth.security import generate_csrf_token
 from app.routes.auth import router as auth_router
+from app.routes.tasks import router as tasks_router
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -45,6 +46,7 @@ templates = Jinja2Templates(directory=str(_base / "templates"))
 
 # Routers
 app.include_router(auth_router)
+app.include_router(tasks_router)
 
 
 # ── Root / Landing placeholder ───────────────────────────────────────
@@ -52,20 +54,19 @@ app.include_router(auth_router)
 @app.get("/", response_class=HTMLResponse)
 def get_root(request: Request, current_user: User | None = Depends(get_current_user_optional)):
     """Landing route – redirects to dashboard if authenticated, or login."""
-    if current_user:
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url="/dashboard", status_code=303)
     from fastapi.responses import RedirectResponse
+    if current_user:
+        return RedirectResponse(url="/dashboard", status_code=303)
     return RedirectResponse(url="/auth/login", status_code=303)
 
 
-# ── Protected Dashboard Route (Phase 2 placeholder) ──────────────────
+# ── Protected Dashboard Route ────────────────────────────────────────
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def get_dashboard(request: Request, current_user: User = Depends(get_current_user)):
     """
-    Protected dashboard endpoint.
-    Used in Phase 2 to verify route protection and session isolation.
+    Dashboard route – renders welcome card and quick navigation.
+    Full analytics and metrics built in Phase 9.
     """
     csrf_token = generate_csrf_token()
     return HTMLResponse(
@@ -78,15 +79,41 @@ def get_dashboard(request: Request, current_user: User = Depends(get_current_use
           <link rel="stylesheet" href="/static/css/style.css">
         </head>
         <body>
-          <div class="container" style="padding-top: 2rem;">
-            <h1>Dashboard</h1>
-            <p>Welcome, <strong id="user-display-name">{current_user.display_name}</strong> ({current_user.email})</p>
-            <div style="margin-top: 1.5rem;">
-              <form method="post" action="/auth/logout">
-                <input type="hidden" name="csrf_token" value="{csrf_token}">
-                <button type="submit" class="btn btn-primary" id="logout-btn">Log out</button>
-              </form>
-            </div>
+          <div class="app-layout">
+            <aside class="sidebar" aria-label="Main Navigation">
+              <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                  {APP_NAME}
+                  <span>University Workload</span>
+                </a>
+              </div>
+              <ul class="sidebar-nav">
+                <li><a href="/dashboard" class="active">Dashboard</a></li>
+                <li><a href="/tasks">Tasks</a></li>
+                <li><a href="/imports">Imports</a></li>
+                <li><a href="/settings">Settings</a></li>
+                <li><a href="/evaluation">Evaluation</a></li>
+              </ul>
+              <div class="sidebar-footer">
+                <div class="user-info">
+                  {current_user.display_name}
+                  <span class="user-email">{current_user.email}</span>
+                </div>
+                <form method="post" action="/auth/logout">
+                  <input type="hidden" name="csrf_token" value="{csrf_token}">
+                  <button type="submit" id="logout-btn">Log out</button>
+                </form>
+              </div>
+            </aside>
+            <main class="main-content" id="main-content">
+              <h1>Dashboard</h1>
+              <p>Welcome back, <strong id="user-display-name">{current_user.display_name}</strong>.</p>
+              <div class="card" style="margin-top: 1.5rem;">
+                <h2 class="card-title">Quick Actions</h2>
+                <p style="margin-bottom: 1rem;">View and manage your tasks, track deadlines, and log hours.</p>
+                <a href="/tasks" class="btn btn-primary">Go to Tasks &rarr;</a>
+              </div>
+            </main>
           </div>
         </body>
         </html>

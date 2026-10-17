@@ -8,9 +8,42 @@
   {% block head %}{% endblock %}
 </head>
 <body>
-  <main id="main-content">
-    {% block content %}{% endblock %}
-  </main>
+  <div class="{% if current_user %}app-layout{% endif %}">
+    {% if current_user %}
+    <!-- Persistent Left Sidebar -->
+    <aside class="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-header">
+        <a href="/dashboard" class="sidebar-brand">
+          {{ app_name }}
+          <span>University Workload</span>
+        </a>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="/dashboard" class="{% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+        <li><a href="/tasks" class="{% if active_page == 'tasks' %}active{% endif %}">Tasks</a></li>
+        <li><a href="/imports" class="{% if active_page == 'imports' %}active{% endif %}">Imports</a></li>
+        <li><a href="/settings" class="{% if active_page == 'settings' %}active{% endif %}">Settings</a></li>
+        <li><a href="/evaluation" class="{% if active_page == 'evaluation' %}active{% endif %}">Evaluation</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          {{ current_user.display_name }}
+          <span class="user-email">{{ current_user.email }}</span>
+        </div>
+        <form method="post" action="/auth/logout">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" id="sidebar-logout-btn">Log out</button>
+        </form>
+      </div>
+    </aside>
+    {% endif %}
+
+    <!-- Single content block across all states -->
+    <main class="{% if current_user %}main-content{% endif %}" id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
   <script src="/static/js/main.js"></script>
   {% block scripts %}{% endblock %}
 </body>
