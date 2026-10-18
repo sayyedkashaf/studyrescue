@@ -1,4 +1,4 @@
-"""
+﻿"""
 SQLAlchemy ORM models for every table in the Study Rescue database.
 
 All tables have `id` (integer primary key) and `created_at`.
@@ -14,7 +14,7 @@ from sqlalchemy.orm import relationship
 from app.db import Base
 
 
-# ── Users ────────────────────────────────────────────────────────────
+# â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class User(Base):
     __tablename__ = "users"
@@ -34,7 +34,7 @@ class User(Base):
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
 
 
-# ── User Settings ────────────────────────────────────────────────────
+# â”€â”€ User Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class UserSettings(Base):
     __tablename__ = "user_settings"
@@ -49,7 +49,7 @@ class UserSettings(Base):
     user = relationship("User", back_populates="settings")
 
 
-# ── Import Batches ───────────────────────────────────────────────────
+# â”€â”€ Import Batches â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class ImportBatch(Base):
     __tablename__ = "import_batches"
@@ -66,7 +66,7 @@ class ImportBatch(Base):
     extraction_runs = relationship("ExtractionRun", back_populates="batch", cascade="all, delete-orphan")
 
 
-# ── Messages ─────────────────────────────────────────────────────────
+# â”€â”€ Messages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class Message(Base):
     __tablename__ = "messages"
@@ -90,7 +90,7 @@ class Message(Base):
     )
 
 
-# ── Extraction Runs ─────────────────────────────────────────────────
+# â”€â”€ Extraction Runs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class ExtractionRun(Base):
     __tablename__ = "extraction_runs"
@@ -110,7 +110,7 @@ class ExtractionRun(Base):
     candidates = relationship("Candidate", back_populates="run", cascade="all, delete-orphan")
 
 
-# ── Candidates ───────────────────────────────────────────────────────
+# â”€â”€ Candidates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class Candidate(Base):
     __tablename__ = "candidates"
@@ -128,6 +128,8 @@ class Candidate(Base):
     estimated_hours = Column(Float, nullable=True)
     certainty = Column(String(20), nullable=False, default="unclear")  # definite | probable | unclear
     quote = Column(Text, nullable=False)
+    is_joke_or_hypothetical = Column(Boolean, nullable=False, default=False)
+    suppressed_reason = Column(String(50), nullable=True)
     status = Column(String(20), nullable=False, default="pending")  # pending | confirmed | dismissed
     suppressed_reason = Column(String(50), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
@@ -143,7 +145,7 @@ class Candidate(Base):
     )
 
 
-# ── Tasks ────────────────────────────────────────────────────────────
+# â”€â”€ Tasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -174,7 +176,7 @@ class Task(Base):
     )
 
 
-# ── Task History ─────────────────────────────────────────────────────
+# â”€â”€ Task History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class TaskHistory(Base):
     __tablename__ = "task_history"

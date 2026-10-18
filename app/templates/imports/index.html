@@ -1,0 +1,136 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Imports â€“ {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="imports-page">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h1>Imports</h1>
+      <p>Import WhatsApp chat exports or paste conversation text. Sender names are anonymised at import time.</p>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error" role="alert">{{ error }}</div>
+  {% endif %}
+  {% if success %}
+  <div class="alert alert-success" role="alert">Import completed successfully.</div>
+  {% endif %}
+
+  <div id="import-loading" class="alert" style="display: none;">Importing&hellip;</div>
+
+  <!-- Import Form Card -->
+  <div class="card" id="import-form-card">
+    <h2 class="card-title">New Import</h2>
+    <form method="post" action="/imports" enctype="multipart/form-data" id="import-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div class="form-group">
+        <label for="paste-text">Paste chat text</label>
+        <textarea id="paste-text" name="paste_text" class="form-control" rows="8" placeholder="Paste a WhatsApp export or plain text here...">{{ form_data.paste_text or '' }}</textarea>
+        <p class="hint">WhatsApp exports are detected automatically (Android and iOS formats). Otherwise, text is split into messages at blank lines.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="upload-file">Or upload a .txt export (max 2 MB, UTF-8)</label>
+        <input type="file" id="upload-file" name="upload_file" accept=".txt" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="reference-date">Reference date for pasted text (optional)</label>
+        <input type="date" id="reference-date" name="reference_date" class="form-control" value="{{ form_data.reference_date or '' }}">
+        <p class="hint">Used as the sent date when pasting plain text (defaults to now). Ignored for WhatsApp exports, which carry their own timestamps.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="import-submit">Import Messages</button>
+    </form>
+  </div>
+
+  <!-- Import Summary (shown right after a successful import) -->
+  {% if summary %}
+  <div class="card" id="import-summary">
+    <h2 class="card-title">Import Summary</h2>
+    <p><strong>Source:</strong> {{ summary.batch.source_name }}</p>
+    <p><strong>Messages:</strong> {{ summary.message_count }} &bull; <strong>Distinct senders:</strong> {{ summary.sender_count }}</p>
+    <p><strong>Date range:</strong>
+      {% if summary.earliest_date and summary.latest_date %}
+        {{ summary.earliest_date.strftime('%d %b %Y') }} to {{ summary.latest_date.strftime('%d %b %Y') }}
+      {% else %}
+        &ndash;
+      {% endif %}
+    </p>
+    <h3 style="margin-top: 1rem; font-size: 1rem;">Preview &mdash; first {{ summary.preview_messages|length }} messages</h3>
+    <table class="preview-table">
+      <thead>
+        <tr><th>Sent at</th><th>Sender</th><th>Message</th></tr>
+      </thead>
+      <tbody>
+        {% for m in summary.preview_messages %}
+        <tr>
+          <td>{{ m.sent_at.strftime('%d %b %Y %H:%M') if m.sent_at else '&ndash;' }}</td>
+          <td>{{ m.sender_alias }}</td>
+          <td>{{ m.text }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p style="margin-top: 1rem;"><a href="/imports" class="btn btn-secondary btn-sm">Import another chat &rarr;</a></p>
+  </div>
+  {% endif %}
+
+  <!-- Previous Imports -->
+  <h2 style="margin-top: 2rem;">Previous Imports</h2>
+  {% if batches %}
+  <table class="batches-table">
+    <thead>
+      <tr><th>Source</th><th>Messages</th><th>Imported at</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for b in batches %}
+      <tr>
+        <td>{{ b.source_name }}</td>
+        <td>{{ b.message_count }}</td>
+        <td>{{ b.created_at.strftime('%d %b %Y %H:%M') }}</td>
+                <td>
+          <form method="post" action="/imports/{{ b.id }}/extract" style="display: inline;" id="extract-form-{{ b.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-primary btn-sm" id="extract-btn-{{ b.id }}">Extract tasks</button>
+          </form>
+          <a href="/imports/{{ b.id }}/delete" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <h3>No imports yet</h3>
+    <p>Import a WhatsApp chat export or paste text to get started.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('import-form')?.addEventListener('submit', function () {
+    var loading = document.getElementById('import-loading');
+    if (loading) {
+      loading.style.display = 'block';
+    }
+  });
+</script>
+{% endblock %}
+
+<script>
+  document.querySelectorAll('form[id^="extract-form-"]').forEach(function(form) {
+    form.addEventListener('submit', function() {
+      var btn = form.querySelector('button');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Extracting...';
+      }
+    });
+  });
+</script>

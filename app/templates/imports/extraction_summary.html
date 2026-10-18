@@ -1,0 +1,62 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Extraction Summary â€“ {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="imports-page">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h1>Extraction Summary</h1>
+      <p>AI extraction results for import batch</p>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h2 class="card-title">Summary</h2>
+    <p><strong>Candidates found:</strong> {{ summary.candidates_found }}</p>
+    <p><strong>Suppressed as jokes or hypotheticals:</strong> {{ summary.suppressed_jokes }}</p>
+    <p><strong>Hallucinations rejected:</strong> {{ summary.hallucinations_rejected }}</p>
+    <p><strong>Chunks failed:</strong> {{ summary.chunks_failed }}</p>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Candidates</h2>
+    {% if candidates %}
+    <table class="batches-table">
+      <thead>
+        <tr>
+          <th>Quote</th>
+          <th>Title</th>
+          <th>Kind</th>
+          <th>Deadline Text</th>
+          <th>Resolved Date</th>
+          <th>Flag</th>
+          <th>Certainty</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in candidates %}
+        <tr>
+          <td>{{ c.quote }}</td>
+          <td>{{ c.title }}</td>
+          <td>{{ c.kind }}</td>
+          <td>{{ c.deadline_text or 'â€“' }}</td>
+          <td>{{ c.deadline_date.strftime('%Y-%m-%d') if c.deadline_date else 'â€“' }}</td>
+          <td>{{ c.deadline_flag }}</td>
+          <td>{{ c.certainty }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No candidates to display.</p>
+    {% endif %}
+  </div>
+
+  <p style="margin-top: 1rem;"><a href="/imports" class="btn btn-secondary btn-sm">Back to Imports</a></p>
+</div>
+{% endblock %}

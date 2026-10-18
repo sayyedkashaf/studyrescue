@@ -19,6 +19,7 @@ from app.auth.deps import get_current_user, get_current_user_optional
 from app.auth.security import generate_csrf_token
 from app.routes.auth import router as auth_router
 from app.routes.tasks import router as tasks_router
+from app.routes.imports import router as imports_router
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -47,6 +48,7 @@ templates = Jinja2Templates(directory=str(_base / "templates"))
 # Routers
 app.include_router(auth_router)
 app.include_router(tasks_router)
+app.include_router(imports_router)
 
 
 # ── Root / Landing placeholder ───────────────────────────────────────

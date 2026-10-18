@@ -1,1 +1,1 @@
-# ai package
+﻿"""AI extraction modules."""
