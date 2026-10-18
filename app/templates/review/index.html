@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Review Candidates - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="review-page">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1>Review Candidates</h1>
+      <p style="color: var(--text-muted, #64748b);">Batch: <strong>{{ batch.source_name }}</strong> &bull; Review extracted tasks before adding them to your schedule.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      {% if cards %}
+      <form method="post" action="/review/{{ batch.id }}/confirm-definite" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-primary" id="confirm-all-definite-btn" {% if not has_definite %}title="No definite tasks with verified dates available" {% endif %}>Confirm all definite</button>
+      </form>
+      {% endif %}
+      <a href="/imports" class="btn btn-secondary btn-sm">Back to Imports</a>
+    </div>
+  </div>
+
+  {% if info %}
+  <div class="alert alert-info" role="status" style="margin-bottom: 1.5rem;">{{ info }}</div>
+  {% endif %}
+
+  {% if warning %}
+  <div class="alert alert-warning" role="alert" style="margin-bottom: 1.5rem;">{{ warning }}</div>
+  {% endif %}
+
+  {% if not cards %}
+  <div class="empty-state card" style="text-align: center; padding: 3rem 1.5rem;">
+    <h2>Nothing to review. Import messages to get started.</h2>
+    <p style="color: var(--text-muted, #64748b); margin: 1rem 0 1.5rem 0;">All candidate tasks for this batch have already been confirmed or dismissed.</p>
+    <a href="/imports" class="btn btn-primary">Go to Imports</a>
+  </div>
+  {% else %}
+
+  <div class="cards-grid" style="display: grid; gap: 1.5rem;">
+    {% for card in cards %}
+    <div class="card review-card" id="card-{{ card.primary_id }}" style="border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 1.5rem; background: var(--card-bg, #ffffff);">
+      
+      <!-- Quotes list -->
+      <div class="card-quotes" style="margin-bottom: 1.25rem;">
+        <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-muted, #64748b);">Source Quote{% if card.quotes|length > 1 %}s ({{ card.quotes|length }} occurrences merged){% endif %}</span>
+        {% for q in card.quotes %}
+        <blockquote style="margin: 0.5rem 0; padding: 0.5rem 0.75rem; background: #f8fafc; border-left: 3px solid #3b82f6; font-size: 0.95rem; border-radius: 0 4px 4px 0;">
+          <p style="margin: 0; font-style: italic;">"{{ q.quote }}"</p>
+          <footer style="margin-top: 0.25rem; font-size: 0.8rem; color: #64748b;">
+            &mdash; <strong>{{ q.sender_alias }}</strong>{% if q.sent_at %} &bull; {{ q.sent_at.strftime('%d %b %Y %H:%M') }}{% endif %}
+          </footer>
+        </blockquote>
+        {% endfor %}
+      </div>
+
+      <!-- Metadata & Status Badges -->
+      <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+        <!-- Certainty label in text (not color only) -->
+        <span class="badge" style="padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.85rem; font-weight: 500; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+          Certainty: {{ card.certainty|capitalize }}
+        </span>
+
+        <!-- Deadline Flag Warnings -->
+        {% if card.deadline_flag == 'ambiguous' %}
+        <span class="badge" style="padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+          Check this date
+        </span>
+        {% elif card.deadline_flag == 'unresolved' %}
+        <span class="badge" style="padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;">
+          Pick a date
+        </span>
+        {% endif %}
+
+        {% if not card.deadline_date %}
+        <span style="font-size: 0.85rem; color: #b91c1c; font-weight: 500;">
+          Warning: No deadline set
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Editable fields form -->
+      <form method="post" action="/review/{{ batch.id }}/confirm" id="confirm-form-{{ card.primary_id }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="candidate_ids" value="{{ card.candidate_ids_str }}">
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label for="title-{{ card.primary_id }}" style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.25rem;">Title</label>
+            <input type="text" id="title-{{ card.primary_id }}" name="title" value="{{ card.title }}" required class="form-control" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+          </div>
+
+          <div class="form-group">
+            <label for="subject-{{ card.primary_id }}" style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.25rem;">Subject</label>
+            <input type="text" id="subject-{{ card.primary_id }}" name="subject" value="{{ card.subject or '' }}" placeholder="Subject (optional)" class="form-control" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+          </div>
+
+          <div class="form-group">
+            <label for="kind-{{ card.primary_id }}" style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.25rem;">Kind</label>
+            <select id="kind-{{ card.primary_id }}" name="kind" class="form-control" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+              <option value="assignment" {% if card.kind == 'assignment' %}selected{% endif %}>Assignment</option>
+              <option value="exam" {% if card.kind == 'exam' %}selected{% endif %}>Exam</option>
+              <option value="submission" {% if card.kind == 'submission' %}selected{% endif %}>Submission</option>
+              <option value="other" {% if card.kind == 'other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="deadline-{{ card.primary_id }}" style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.25rem;">Resolved Deadline</label>
+            <input type="date" id="deadline-{{ card.primary_id }}" name="deadline" value="{{ card.deadline_date.isoformat() if card.deadline_date else '' }}" class="form-control" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+          </div>
+
+          <div class="form-group">
+            <label for="estimate-{{ card.primary_id }}" style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.25rem;">Estimate (hours)</label>
+            <input type="number" id="estimate-{{ card.primary_id }}" name="estimated_hours" step="0.5" min="0" value="{{ card.estimated_hours if card.estimated_hours is not none else '' }}" placeholder="Estimate" class="form-control" style="width: 100%; padding: 0.45rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+          <button type="submit" class="btn btn-primary" id="confirm-btn-{{ card.primary_id }}">Confirm</button>
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('dismiss-form-{{ card.primary_id }}').submit();" id="dismiss-btn-{{ card.primary_id }}">Dismiss</button>
+        </div>
+      </form>
+
+      <!-- Hidden dismiss form for this card -->
+      <form method="post" action="/review/{{ batch.id }}/dismiss" id="dismiss-form-{{ card.primary_id }}" style="display: none;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="candidate_ids" value="{{ card.candidate_ids_str }}">
+      </form>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}

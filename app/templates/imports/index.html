@@ -97,6 +97,7 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="btn btn-primary btn-sm" id="extract-btn-{{ b.id }}">Extract tasks</button>
           </form>
+          <a href="/review/{{ b.id }}" class="btn btn-secondary btn-sm" id="review-btn-{{ b.id }}">Review</a>
           <a href="/imports/{{ b.id }}/delete" class="btn btn-danger btn-sm">Delete</a>
         </td>
       </tr>
