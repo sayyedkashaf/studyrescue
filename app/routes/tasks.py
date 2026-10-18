@@ -12,10 +12,13 @@ from pathlib import Path
 
 from app.config import APP_NAME
 from app.db import get_db
-from app.models import User
+from app.models import User, UserSettings
 from app.auth.deps import get_current_user
 from app.auth.security import generate_csrf_token, verify_csrf_token
 from app.services import task_service
+from app.planning.overrun import overrun_factor
+from app.planning.feasibility import check_feasibility
+from app.planning.risk import risk_level
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -42,6 +45,75 @@ def parse_float(val_str: str | None) -> float | None:
         return max(0.0, val)
     except ValueError:
         return None
+
+
+def _attach_planning_info(db: Session, current_user: User, tasks: list) -> dict:
+    """Calculates overrun factor and feasibility metrics, attaching display badges to tasks."""
+    # User settings or defaults: 3 hours per day, all days, 5 min samples
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    free_hours = settings.free_hours_per_day if settings else 3.0
+    free_days = settings.free_days if settings else "Mon,Tue,Wed,Thu,Fri,Sat,Sun"
+    min_samples = settings.overrun_min_samples if settings else 5
+
+    # Compute overrun factor from completed tasks
+    all_user_tasks = task_service.list_tasks(db=db, user_id=current_user.id, status_filter="all")
+    factor_res = overrun_factor(all_user_tasks, min_samples=min_samples)
+    factor = factor_res.factor
+    insufficient_data = factor_res.insufficient_data
+    overrun_samples = factor_res.n
+
+    # Compute feasibility for open tasks
+    open_tasks = task_service.list_tasks(db=db, user_id=current_user.id, status_filter="open")
+    feasibility_res = check_feasibility(
+        open_tasks=open_tasks,
+        today=date.today(),
+        free_hours_per_day=free_hours,
+        free_days=free_days,
+        factor=factor,
+    )
+
+    feasibility_map = {item["task_id"]: item for item in feasibility_res.tasks}
+    no_est_ids = {getattr(t, "id", None) for t in feasibility_res.no_estimate}
+    no_dl_ids = {getattr(t, "id", None) for t in feasibility_res.no_deadline}
+    overdue_ids = {getattr(t, "id", None) for t in feasibility_res.overdue}
+
+    # Attach risk and feasibility info for template rendering
+    for t in tasks:
+        t.is_overdue = task_service.is_task_overdue(t)
+        if t.status in ("pending", "in_progress"):
+            if t.is_overdue or t.id in overdue_ids:
+                t.risk = risk_level(overdue=True)
+                t.feasibility_sentence = "Task is overdue."
+                t.feasibility_note = "Overdue"
+            elif t.id in no_dl_ids:
+                t.risk = risk_level(status=None)
+                t.feasibility_sentence = None
+                t.feasibility_note = "No deadline"
+            elif t.id in no_est_ids:
+                t.risk = risk_level(status=None)
+                t.feasibility_sentence = None
+                t.feasibility_note = "No estimate, not included"
+            elif t.id in feasibility_map:
+                info = feasibility_map[t.id]
+                t.risk = risk_level(status=info["status"], days_left=info["days_left"], overdue=False)
+                t.feasibility_sentence = info["sentence"]
+                t.feasibility_note = None
+            else:
+                t.risk = "unknown"
+                t.feasibility_sentence = None
+                t.feasibility_note = None
+        else:
+            t.risk = None
+            t.feasibility_sentence = None
+            t.feasibility_note = None
+
+    return {
+        "overrun_factor": factor,
+        "insufficient_data": insufficient_data,
+        "overrun_samples": overrun_samples,
+        "overrun_min_samples": min_samples,
+        "suggestions": feasibility_res.suggestions,
+    }
 
 
 # ── Task List & Filter ───────────────────────────────────────────────
@@ -71,10 +143,7 @@ def list_tasks_page(
         subject_filter=cleaned_subject,
     )
 
-    # Attach derived is_overdue property for template rendering
-    for t in tasks:
-        t.is_overdue = task_service.is_task_overdue(t)
-
+    planning_ctx = _attach_planning_info(db=db, current_user=current_user, tasks=tasks)
     user_subjects = task_service.get_user_subjects(db, current_user.id)
     csrf_token = generate_csrf_token()
 
@@ -90,6 +159,7 @@ def list_tasks_page(
             "user_subjects": user_subjects,
             "current_status": cleaned_status,
             "current_subject": cleaned_subject,
+            **planning_ctx,
             "form_data": {},
             "error": None,
         },
@@ -120,8 +190,7 @@ def create_task_endpoint(
     if not cleaned_title:
         # Re-render with error
         tasks = task_service.list_tasks(db, current_user.id, status_filter="all")
-        for t in tasks:
-            t.is_overdue = task_service.is_task_overdue(t)
+        planning_ctx = _attach_planning_info(db=db, current_user=current_user, tasks=tasks)
         user_subjects = task_service.get_user_subjects(db, current_user.id)
         new_csrf = generate_csrf_token()
 
@@ -137,6 +206,7 @@ def create_task_endpoint(
                 "user_subjects": user_subjects,
                 "current_status": "all",
                 "current_subject": None,
+                **planning_ctx,
                 "form_data": {
                     "title": title,
                     "subject": subject,

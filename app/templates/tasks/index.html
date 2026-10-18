@@ -11,6 +11,31 @@
     </div>
   </div>
 
+  <!-- Planning Overrun & Workload Banner -->
+  <div class="overrun-banner card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-left: 4px solid #3b82f6;">
+    <div>
+      <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-muted, #64748b); display: block;">Overrun Multiplier</span>
+      {% if (insufficient_data is not defined) or insufficient_data or (overrun_factor is not defined) or (overrun_factor is none) %}
+      <span id="overrun-factor-text" style="font-size: 1.15rem; font-weight: 600; color: #475569;">Not enough data yet</span>
+      {% if overrun_samples is defined and overrun_min_samples is defined %}
+      <span style="font-size: 0.85rem; color: #64748b; margin-left: 0.35rem;">({{ overrun_samples }}/{{ overrun_min_samples }} completed tasks with estimates)</span>
+      {% endif %}
+      {% else %}
+      <span id="overrun-factor-text" style="font-size: 1.15rem; font-weight: 600; color: #0f172a;">{{ "%.2f"|format(overrun_factor) }}x</span>
+      {% if overrun_samples is defined %}
+      <span style="font-size: 0.85rem; color: #64748b; margin-left: 0.35rem;">(based on {{ overrun_samples }} completed tasks)</span>
+      {% endif %}
+      {% endif %}
+    </div>
+    {% if suggestions is defined and suggestions %}
+    <div class="alert alert-warning" id="workload-suggestion" style="margin: 0; padding: 0.6rem 1rem; font-size: 0.88rem; flex: 1; min-width: 280px; border-radius: 6px;">
+      {% for s in suggestions %}
+      <p style="margin: 0;">{{ s }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
   <!-- Manual Add Task Card -->
   <div class="card" id="add-task-card">
     <h2 class="card-title">Add a Task Manually</h2>
@@ -148,9 +173,24 @@
             {% if task.kind %}
             <span class="badge badge-pending">{{ task.kind }}</span>
             {% endif %}
+            {% if task.risk %}
+            <span class="badge badge-risk badge-risk-{{ task.risk }}" id="risk-badge-{{ task.id }}" style="font-weight: 600;">Risk: {{ task.risk | capitalize }}</span>
+            {% endif %}
           </div>
         </div>
       </div>
+
+      {% if task.feasibility_sentence %}
+      <div class="feasibility-sentence" style="font-size: 0.88rem; color: #334155; margin: 0.35rem 0 0.25rem 0; font-weight: 500;">
+        {{ task.feasibility_sentence }}
+      </div>
+      {% endif %}
+
+      {% if task.feasibility_note %}
+      <div class="feasibility-note" style="font-size: 0.85rem; color: #64748b; font-style: italic; margin: 0.25rem 0;">
+        {{ task.feasibility_note }}
+      </div>
+      {% endif %}
 
       <div class="task-meta">
         {% if task.deadline %}
