@@ -284,3 +284,53 @@ def test_extraction_failure_resets_batch_status(db_session):
     db_session.refresh(batch)
     assert batch.status == 'failed'
 
+
+def test_tolerant_parsing_of_real_model_response(db_session):
+    user = _create_user(db_session)
+    batch, msgs = _sample_batch_with_msgs(db_session, user.id)
+    client = TestClient(app)
+    token = create_session_token(user.id)
+    client.cookies.set(SESSION_COOKIE_NAME, token)
+
+    real_style_resp = f"""Here is the extracted task list:
+```json
+{{
+    "candidates": [
+        {{
+            "message_id": "{msgs[0].id}",
+            "kind": "Assignment",
+            "title": "Submit assignment",
+            "subject": null,
+            "deadline_text": "tomorrow",
+            "estimated_hours": "2.5",
+            "certainty": "DEFINITE",
+            "is_joke_or_hypothetical": "false",
+            "quote": "Submit assignment by tomorrow",
+            "reason": null
+        }},
+        {{
+            "message_id": "{msgs[1].id}",
+            "kind": "exam",
+            "title": "Hallucinated Task",
+            "deadline_text": "25 Oct",
+            "certainty": "probable",
+            "quote": "This text does not exist in message two",
+            "reason": "should be rejected"
+        }}
+    ]
+}}
+```
+I hope this helps!"""
+
+    with patch('app.ai.extractor.complete_json', return_value=real_style_resp):
+        resp = client.post(f'/imports/{batch.id}/extract', data={'csrf_token': generate_csrf_token()})
+        assert resp.status_code == 200
+
+    cands = db_session.query(Candidate).filter(Candidate.user_id == user.id).all()
+    assert len(cands) == 1
+    assert cands[0].title == "Submit assignment"
+    assert cands[0].estimated_hours == 2.5
+    assert cands[0].kind == "assignment"
+    assert cands[0].certainty == "definite"
+
+

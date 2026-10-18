@@ -55,6 +55,42 @@ def extract_batch(db, user_id: int, batch_id: int) -> ExtractionRun:
     return run
 
 
+import re
+
+def _clean_and_parse_json(text: str) -> Any:
+    if not text:
+        raise ValueError("Empty response")
+    cleaned = text.strip()
+    match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', cleaned, re.IGNORECASE)
+    if match:
+        cleaned = match.group(1).strip()
+    try:
+        parsed = json.loads(cleaned)
+        if isinstance(parsed, list):
+            return {"candidates": parsed}
+        return parsed
+    except json.JSONDecodeError:
+        pass
+    start_brace = cleaned.find('{')
+    end_brace = cleaned.rfind('}')
+    if start_brace != -1 and end_brace > start_brace:
+        try:
+            return json.loads(cleaned[start_brace:end_brace + 1])
+        except json.JSONDecodeError:
+            pass
+    start_bracket = cleaned.find('[')
+    end_bracket = cleaned.rfind(']')
+    if start_bracket != -1 and end_bracket > start_bracket:
+        try:
+            parsed = json.loads(cleaned[start_bracket:end_bracket + 1])
+            if isinstance(parsed, list):
+                return {"candidates": parsed}
+            return parsed
+        except json.JSONDecodeError:
+            pass
+    raise json.JSONDecodeError("Could not extract valid JSON from response", text, 0)
+
+
 def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, bool]:
     hallucination_count = 0
     chunk_failed = False
@@ -84,17 +120,16 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
         chunk_failed = True
         return (hallucination_count, chunk_failed)
 
-
     try:
-        data = json.loads(response_text)
-    except json.JSONDecodeError:
+        data = _clean_and_parse_json(response_text)
+    except Exception:
         repair_prompt = (
             'The previous response was not valid JSON. Return only valid JSON in the exact format '
             '{"candidates": [...]} with all required fields.'
         )
         try:
             response_text2 = complete_json(prompts.SYSTEM_PROMPT + '\n' + repair_prompt, user_prompt)
-            data = json.loads(response_text2)
+            data = _clean_and_parse_json(response_text2)
         except Exception:
             chunk_failed = True
             return (hallucination_count, chunk_failed)
@@ -132,6 +167,7 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
             estimated_hours=c.get('estimated_hours'),
             certainty=c['certainty'],
             quote=c['quote'],
+            is_joke_or_hypothetical=is_joke,
             status=status,
             suppressed_reason=suppressed_reason,
         )
@@ -139,4 +175,5 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
 
     db.commit()
     return (hallucination_count, chunk_failed)
+
 

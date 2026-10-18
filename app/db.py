@@ -48,3 +48,12 @@ def create_tables():
     """Create all tables defined in models.py (imported for side effects)."""
     import app.models  # noqa: F401 – registers models with Base.metadata
     Base.metadata.create_all(bind=engine)
+    # Ensure any added columns exist in sqlite tables (e.g. is_joke_or_hypothetical in candidates)
+    with engine.connect() as conn:
+        try:
+            cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(candidates)").fetchall()]
+            if cols and "is_joke_or_hypothetical" not in cols:
+                conn.exec_driver_sql("ALTER TABLE candidates ADD COLUMN is_joke_or_hypothetical BOOLEAN NOT NULL DEFAULT 0")
+                conn.commit()
+        except Exception:
+            pass
