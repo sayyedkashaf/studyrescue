@@ -131,7 +131,6 @@ class Candidate(Base):
     is_joke_or_hypothetical = Column(Boolean, nullable=False, default=False)
     suppressed_reason = Column(String(50), nullable=True)
     status = Column(String(20), nullable=False, default="pending")  # pending | confirmed | dismissed
-    suppressed_reason = Column(String(50), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     user = relationship("User", back_populates="candidates")

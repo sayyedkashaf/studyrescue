@@ -1,4 +1,5 @@
-﻿from typing import List, Dict, Any
+import os
+from typing import List, Dict, Any
 import json
 import time
 
@@ -27,7 +28,7 @@ def extract_batch(db, user_id: int, batch_id: int) -> ExtractionRun:
     run = ExtractionRun(
         batch_id=batch_id,
         user_id=user_id,
-        model_name=None,
+        model_name=(os.getenv('LLM_MODEL') or os.getenv('LLM_PROVIDER') or 'unknown'),
         prompt_version=prompts.PROMPT_VERSION,
         status='ok',
         error_message=None,
@@ -66,17 +67,23 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
             'timestamp': m.sent_at.isoformat() if m.sent_at else None,
             'text': m.text,
         })
-
-    user_prompt = json.dumps({'messages': chunk_payload}, ensure_ascii=False)
-
+    user_prompt = json.dumps(chunk_payload)
     try:
         response_text = complete_json(prompts.SYSTEM_PROMPT, user_prompt)
-    except (LLMUnavailableError, Exception) as e:
+    except LLMUnavailableError as e:
+        # Mark extraction run as failed and re-raise for route handling
+        run.status = 'failed'
+        run.error_message = str(e)
+        db.commit()
+        raise
+    except Exception as e:
+        # Record failure for this chunk but continue processing other chunks
         run.status = 'failed'
         run.error_message = str(e)
         db.commit()
         chunk_failed = True
         return (hallucination_count, chunk_failed)
+
 
     try:
         data = json.loads(response_text)
@@ -132,3 +139,4 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
 
     db.commit()
     return (hallucination_count, chunk_failed)
+
