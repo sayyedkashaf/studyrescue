@@ -212,3 +212,75 @@ def test_extraction_run_logged_with_fields(db_session):
     assert r.prompt_version is not None
     assert r.status is not None
     assert r.duration_ms is not None
+
+
+def test_stale_extraction_allows_retry(db_session):
+    user = _create_user(db_session)
+    batch, msgs = _sample_batch_with_msgs(db_session, user.id)
+    batch.status = 'extracting'
+    db_session.commit()
+
+    from datetime import timedelta
+    stale_run = ExtractionRun(
+        batch_id=batch.id,
+        user_id=user.id,
+        model_name='test-model',
+        prompt_version='1.0',
+        status='running',
+        created_at=datetime.utcnow() - timedelta(minutes=6),
+    )
+    db_session.add(stale_run)
+    db_session.commit()
+
+    client = TestClient(app)
+    token = create_session_token(user.id)
+    client.cookies.set(SESSION_COOKIE_NAME, token)
+    mock_resp = '{"candidates": []}'
+    with patch('app.ai.extractor.complete_json', return_value=mock_resp):
+        resp = client.post(f'/imports/{batch.id}/extract', data={'csrf_token': generate_csrf_token()})
+        assert resp.status_code != 409
+        assert resp.status_code == 200
+
+
+def test_active_extraction_blocks_retry(db_session):
+    user = _create_user(db_session)
+    batch, msgs = _sample_batch_with_msgs(db_session, user.id)
+    batch.status = 'extracting'
+    db_session.commit()
+
+    from datetime import timedelta
+    active_run = ExtractionRun(
+        batch_id=batch.id,
+        user_id=user.id,
+        model_name='test-model',
+        prompt_version='1.0',
+        status='running',
+        created_at=datetime.utcnow() - timedelta(minutes=1),
+    )
+    db_session.add(active_run)
+    db_session.commit()
+
+    client = TestClient(app)
+    token = create_session_token(user.id)
+    client.cookies.set(SESSION_COOKIE_NAME, token)
+    resp = client.post(f'/imports/{batch.id}/extract', data={'csrf_token': generate_csrf_token()})
+    assert resp.status_code == 409
+
+
+def test_extraction_failure_resets_batch_status(db_session):
+    user = _create_user(db_session)
+    batch, msgs = _sample_batch_with_msgs(db_session, user.id)
+    batch.status = 'extracting'
+    db_session.commit()
+
+    client = TestClient(app)
+    token = create_session_token(user.id)
+    client.cookies.set(SESSION_COOKIE_NAME, token)
+
+    with patch('app.ai.extractor.complete_json', side_effect=LLMUnavailableError('temporarily down')):
+        resp = client.post(f'/imports/{batch.id}/extract', data={'csrf_token': generate_csrf_token()})
+        assert resp.status_code == 200
+
+    db_session.refresh(batch)
+    assert batch.status == 'failed'
+

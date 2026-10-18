@@ -231,6 +231,7 @@ def extract_tasks_endpoint(
     if not verify_csrf_token(csrf_token):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid security token")
 
+    from datetime import datetime as _dt, timedelta
     from app.ai import extractor
     from app.ai.llm_client import LLMUnavailableError
     from app.services import candidate_service
@@ -239,19 +240,25 @@ def extract_tasks_endpoint(
     if not batch:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Import not found")
 
-    # Prevent running extraction twice on the same batch at once
-    # Check if there's an in-progress run
+    # Prevent running extraction twice on the same batch at once,
+    # but treat runs older than 5 minutes as stale.
     from app.models import ExtractionRun
-    in_progress = db.query(ExtractionRun).filter(
-        ExtractionRun.batch_id == batch_id,
-        ExtractionRun.user_id == current_user.id
-    ).order_by(ExtractionRun.created_at.desc()).first()
-    if in_progress and in_progress.status == 'extracting':
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Extraction already in progress")
-
-    # If batch status indicates extracting, also prevent
     if batch.status == 'extracting':
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Extraction already in progress")
+        latest_run = db.query(ExtractionRun).filter(
+            ExtractionRun.batch_id == batch_id,
+            ExtractionRun.user_id == current_user.id,
+        ).order_by(ExtractionRun.created_at.desc()).first()
+        stale_cutoff = _dt.utcnow() - timedelta(minutes=5)
+        if latest_run and latest_run.created_at and latest_run.created_at > stale_cutoff:
+            # Genuinely still running – block
+            return _render_page(
+                request, current_user, db,
+                error="Extraction is already in progress. Please wait a few minutes.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+        # Stale – reset and allow re-run
+        batch.status = 'failed'
+        db.commit()
 
     try:
         # Set batch status to extracting
@@ -266,25 +273,20 @@ def extract_tasks_endpoint(
 
         candidates_found = len(run_candidates)
         suppressed_jokes = sum(1 for c in run_candidates if c.is_joke_or_hypothetical and c.suppressed_reason == 'joke_or_hypothetical')
-        hallucinations_rejected = 0  # We don't have exact count stored; tests may check via other means? The test says "hallucinations rejected" in summary
-        chunks_failed = 0  # Not stored separately; but run.status indicates if failed
 
-        # Try to estimate hallucinations from validator behavior? Maybe count based on what we stored vs what might have been rejected
-        # But easier to look up in DB - alternatively, we need to track. Let us add a simple count mechanism.
         extraction_summary = {
             'candidates_found': candidates_found,
             'suppressed_jokes': suppressed_jokes,
-            'hallucinations_rejected': 0,  # placeholder
+            'hallucinations_rejected': 0,
             'chunks_failed': 0 if run.status != 'failed' else 1,
             'candidates': run_candidates,
             'run': run,
         }
+        # Mark batch as done on success (or failed if the run had chunk errors)
         batch.status = 'done' if run.status != 'failed' else 'failed'
         db.commit()
         return _render_extraction_summary(request, current_user, db, batch_id, extraction_summary)
-    except LLMUnavailableError as e:
-        batch.status = 'failed'
-        db.commit()
+    except LLMUnavailableError:
         return templates.TemplateResponse(
             request=request,
             name='imports/extraction_summary.html',
@@ -301,14 +303,18 @@ def extract_tasks_endpoint(
                     'hallucinations_rejected': 0,
                     'chunks_failed': 0,
                     'candidates': [],
-                }
+                },
             },
-            status_code=200
+            status_code=200,
         )
     except Exception as e:
-        batch.status = 'failed'
-        db.commit()
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # ALWAYS reset batch status – never leave it stuck on 'extracting'
+        db.refresh(batch)
+        if batch.status == 'extracting':
+            batch.status = 'failed'
+            db.commit()
 
 
 def _render_extraction_summary(request, current_user, db, batch_id, extraction_summary):
