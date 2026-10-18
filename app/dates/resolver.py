@@ -15,9 +15,9 @@ from app.dates.hinglish import WEEKDAYS, MONTHS, RELATIVE_DAYS
 
 # ── Time and Filler Stripping Patterns ───────────────────────────────
 
-# Matches times like '5 pm', '5:30 pm', '11:59pm', '17:00', '5pm'
+# Matches times like '5 pm', '5:30 pm', '11:59pm', '17:00', '5pm', '5 baje', '5 baje tak', '5 tak'
 _TIME_PATTERN = re.compile(
-    r"\b(?:at|by|before)?\s*\d{1,2}(?::\d{2})?\s*(?:am|pm|hrs?|hours?)\b",
+    r"\b(?:at|by|before)?\s*\d{1,2}(?::\d{2})?\s*(?:(?:am|pm|hrs?|hours?|baje|bje)(?:\s+tak)?|tak)\b",
     re.IGNORECASE,
 )
 _TIME_24H_PATTERN = re.compile(r"\b\d{1,2}:\d{2}\b")

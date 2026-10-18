@@ -1,6 +1,6 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Extraction Summary â€“ {{ app_name }}{% endblock %}
+{% block title %}Extraction Summary - {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="imports-page">
@@ -44,8 +44,8 @@
           <td>{{ c.quote }}</td>
           <td>{{ c.title }}</td>
           <td>{{ c.kind }}</td>
-          <td>{{ c.deadline_text or 'â€“' }}</td>
-          <td>{{ c.deadline_date.strftime('%Y-%m-%d') if c.deadline_date else 'â€“' }}</td>
+          <td>{{ c.deadline_text or '-' }}</td>
+          <td>{{ c.deadline_date.strftime('%Y-%m-%d') if c.deadline_date else '-' }}</td>
           <td>{{ c.deadline_flag }}</td>
           <td>{{ c.certainty }}</td>
         </tr>

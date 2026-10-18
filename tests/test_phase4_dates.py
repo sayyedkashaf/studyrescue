@@ -110,6 +110,8 @@ DATE_TEST_CASES = [
     ("due by tomorrow 11:59 pm", datetime(2026, 10, 8, 14, 0), date(2026, 10, 9), "ok"),
     ("by 5 pm on Monday", datetime(2026, 10, 7, 10, 0), date(2026, 10, 12), "ok"),
     ("at 4:30 pm 18th Oct", datetime(2026, 10, 10, 9, 0), date(2026, 10, 18), "ok"),
+    ("aaj 5 baje tak", datetime(2026, 10, 12, 10, 0), date(2026, 10, 12), "ok"),
+    ("kal 5 baje tak", datetime(2026, 10, 6, 10, 0), date(2026, 10, 7), "ambiguous"),
 
     # ── Unresolved Vague Informal Phrases ────────────────────────────
     ("after next lab session", datetime(2026, 10, 5, 10, 0), None, "unresolved"),
