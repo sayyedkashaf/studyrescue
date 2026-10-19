@@ -34,3 +34,5 @@ eval/labeled/*.csv
 
 # Reports are kept
 # eval/reports/
+eval/labeled/*.csv
+eval/cache/

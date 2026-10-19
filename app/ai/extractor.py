@@ -177,3 +177,86 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
     return (hallucination_count, chunk_failed)
 
 
+def extract_from_messages(messages) -> list[dict]:
+    from types import SimpleNamespace
+    from datetime import datetime
+
+    def _to_msg(m):
+        sent_at = m['sent_at']
+        if isinstance(sent_at, str):
+            try:
+                sent_at = datetime.fromisoformat(sent_at)
+            except ValueError:
+                sent_at = datetime.fromisoformat(sent_at.replace('Z', '+00:00'))
+        return SimpleNamespace(id=m['id'], sent_at=sent_at, text=m['text'])
+
+    chunk_size = 20
+    results = []
+    for i in range(0, len(messages), chunk_size):
+        chunk = [_to_msg(m) for m in messages[i:i + chunk_size]]
+        msg_map = {m.id: m for m in chunk}
+        chunk_payload = []
+        for m in chunk:
+            chunk_payload.append({
+                'id': m.id,
+                'timestamp': m.sent_at.isoformat() if m.sent_at else None,
+                'text': m.text,
+            })
+        user_prompt = json.dumps(chunk_payload)
+        try:
+            response_text = complete_json(prompts.SYSTEM_PROMPT, user_prompt)
+        except LLMUnavailableError:
+            raise
+        except Exception:
+            continue
+
+        try:
+            data = _clean_and_parse_json(response_text)
+        except Exception:
+            repair_prompt = (
+                'The previous response was not valid JSON. Return only valid JSON in the exact format '
+                '{"candidates": [...]} with all required fields.'
+            )
+            try:
+                response_text2 = complete_json(prompts.SYSTEM_PROMPT + '\n' + repair_prompt, user_prompt)
+                data = _clean_and_parse_json(response_text2)
+            except Exception:
+                continue
+
+        try:
+            valid_candidates, _ = _validate_with_hallucination_count(data, chunk)
+        except Exception:
+            continue
+
+        for c in valid_candidates:
+            msg = msg_map.get(c['message_id'])
+            if not msg:
+                continue
+            deadline_text = c.get('deadline_text')
+            if deadline_text:
+                deadline_date, deadline_flag = resolve_deadline(deadline_text, msg.sent_at)
+            else:
+                deadline_date, deadline_flag = (None, 'unresolved')
+
+            is_joke = bool(c.get('is_joke_or_hypothetical'))
+            status = 'dismissed' if is_joke else 'pending'
+            suppressed_reason = 'joke_or_hypothetical' if is_joke else None
+
+            results.append({
+                'message_id': c['message_id'],
+                'kind': c['kind'],
+                'title': c['title'],
+                'subject': c.get('subject'),
+                'deadline_text': deadline_text,
+                'deadline_date': deadline_date,
+                'deadline_flag': deadline_flag if deadline_flag else ('unresolved' if not deadline_text else 'ok'),
+                'estimated_hours': c.get('estimated_hours'),
+                'certainty': c['certainty'],
+                'quote': c['quote'],
+                'is_joke_or_hypothetical': is_joke,
+                'status': status,
+                'suppressed_reason': suppressed_reason,
+            })
+    return results
+
+
