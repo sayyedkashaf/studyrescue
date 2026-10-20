@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome, {{ user.display_name }}</h1>
+<p>Open: {{ open_count }} Completed: {{ completed_count }} Overdue: {{ overdue_count }} Due soon: {{ due_soon_count }}</p>
+{% if risk_message %}<p>{{ risk_message }}</p>{% endif %}
+<ul>
+{% for r in risk_list %}
+  <li>{{ r.title }} - {{ r.deadline }} - {{ r.risk }} - {{ r.sentence }}</li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -88,6 +88,35 @@ import argparse
 from datetime import datetime
 
 
+def breakdown_by_tag(rows, predictions) -> dict:
+    tags = set()
+    for r in rows:
+        for t in (r.get("error_tags") or "").split(","):
+            t = t.strip()
+            if t:
+                tags.add(t)
+    result = {}
+    for tag in sorted(tags):
+        tagged = [r for r in rows if tag in [x.strip() for x in (r.get("error_tags") or "").split(",") if x.strip()]]
+        tp = fp = fn = 0
+        for row in tagged:
+            mid = row["message_id"]
+            pred = predictions.get(mid)
+            if pred is None and str(mid).isdigit():
+                pred = predictions.get(int(mid))
+            if pred is None:
+                pred = predictions.get(str(mid), False)
+            gold_positive = row.get("gold_label") == "commitment"
+            if pred and gold_positive:
+                tp += 1
+            elif pred and not gold_positive:
+                fp += 1
+            elif (not pred) and gold_positive:
+                fn += 1
+        result[tag] = {"tp": tp, "fp": fp, "fn": fn, "prf": prf(tp, fp, fn)}
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--split", choices=["dev", "test"], required=True)
@@ -98,8 +127,25 @@ def main():
         print("Refusing to run on test split without --final flag.")
         return
 
+    rows = load_labeled(f"eval/labeled/{args.split}.csv", args.split)
+
+    from eval.baseline import keyword_predict
+    baseline_preds = {}
+    for r in rows:
+        mid = int(r["message_id"]) if str(r["message_id"]).isdigit() else r["message_id"]
+        baseline_preds[mid] = keyword_predict(r["text"])
+
+    cache_path = f"eval/cache/{args.split}.json"
+    llm_preds = llm_predict(rows, cache_path)
+
+    baseline_result = score(rows, baseline_preds)
+    llm_result = score(rows, llm_preds)
+    breakdown = breakdown_by_tag(rows, llm_preds)
+
+    os.makedirs("eval/reports", exist_ok=True)
+    write_report(args.split, len(rows), baseline_result, llm_result, f"eval/reports/report_{args.split}.md", breakdown)
+
     if args.final:
-        os.makedirs("eval/reports", exist_ok=True)
         with open("eval/reports/final_runs.log", "a", encoding="utf-8") as f:
             f.write(datetime.now().isoformat() + "\n")
 
@@ -107,7 +153,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-def write_report(split, n_rows, baseline_result, llm_result, out_path):
+def write_report(split, n_rows, baseline_result, llm_result, out_path, breakdown=None):
     lines = []
     lines.append(f"# Eval Report - {split}")
     lines.append("")
@@ -125,5 +171,12 @@ def write_report(split, n_rows, baseline_result, llm_result, out_path):
         gold = row.get("gold_label", "")
         pred = "not commitment" if gold == "commitment" else "commitment"
         lines.append(f"| {text} | {gold} | {pred} |  |")
+    if breakdown:
+        lines.append("")
+        lines.append("| tag | tp | fp | fn | precision | recall | f1 |")
+        lines.append("|---|---|---|---|---|---|---|")
+        for tag, vals in breakdown.items():
+            p = vals["prf"]
+            lines.append("| %s | %d | %d | %d | %.4f | %.4f | %.4f |" % (tag, vals["tp"], vals["fp"], vals["fn"], p["precision"], p["recall"], p["f1"]))
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")

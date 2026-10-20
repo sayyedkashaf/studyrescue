@@ -1,0 +1,7 @@
+{% if error %}<p>{{ error }}</p>{% endif %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+  <label>Display name <input name="display_name" value="{{ display_name }}" /></label>
+  <label>Free hours per day <input name="free_hours_per_day" value="{{ free_hours_per_day }}" /></label>
+  <button type="submit">Save</button>
+</form>

@@ -21,6 +21,9 @@ from app.routes.auth import router as auth_router
 from app.routes.tasks import router as tasks_router
 from app.routes.imports import router as imports_router
 from app.routes.review import router as review_router
+from app.routes.evaluation import router as evaluation_router
+from app.routes.settings import router as settings_router
+from app.routes.dashboard import router as dashboard_router
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -51,6 +54,9 @@ app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(imports_router)
 app.include_router(review_router)
+app.include_router(evaluation_router)
+app.include_router(settings_router)
+app.include_router(dashboard_router)
 
 
 # ── Root / Landing placeholder ───────────────────────────────────────
