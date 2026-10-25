@@ -1,3 +1,4 @@
+import hashlib
 import argparse
 import csv
 import json
@@ -109,9 +110,9 @@ def gemini_predict(rows, cache_dir="eval/cache"):
     cache = {}
     for r in rows:
         key = r.get("text", "")
-        cpath = os.path.join(cache_dir, str(hash(key)) + ".json")
+        cpath = os.path.join(cache_dir, hashlib.sha256(key.encode("utf-8")).hexdigest() + ".json")
         if os.path.exists(cpath):
-            with open(cpath) as f:
+            with open(cpath, encoding="utf-8") as f:
                 cache[key] = json.load(f)
     for r in rows:
         mid = r["message_id"]
@@ -125,8 +126,8 @@ def gemini_predict(rows, cache_dir="eval/cache"):
                 res = extract_from_messages(msg)
                 pred = any(c.get("is_joke_or_hypothetical") is False for c in res)
                 preds[mid] = pred
-                cpath = os.path.join(cache_dir, str(hash(text)) + ".json")
-                with open(cpath, "w") as f:
+                cpath = os.path.join(cache_dir, hashlib.sha256(text.encode("utf-8")).hexdigest() + ".json")
+                with open(cpath, "w", encoding="utf-8") as f:
                     json.dump(pred, f)
                 break
             except Exception:
@@ -231,7 +232,7 @@ def main():
 
     os.makedirs("eval/results", exist_ok=True)
     out = f"eval/results/{split}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
-    with open(out, "w") as f:
+    with open(out, "w", encoding="utf-8") as f:
         json.dump(results, f)
     print(results)
 
