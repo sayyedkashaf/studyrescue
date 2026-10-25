@@ -8,9 +8,9 @@ from collections import defaultdict, Counter
 def keyword_baseline_predict(text: str) -> bool:
     lowered = text.lower()
     patterns = [
-        r\"submit\", r\"submission\", r\"assignment\", r\"deadline\", r\"\bdue\b\", r\"exam\", r\"\btest\b\", r\"viva\",
-        r\"lab record\", r\"report\", r\"before\", r\"by tomorrow\", r\"jama karna\", r\"jama\", r\"last date\",
-        r\"project\", r\"quiz\", r\"internal\", r\"practical\"
+        r"submit", r"submission", r"assignment", r"deadline", r"\bdue\b", r"exam", r"\btest\b", r"viva",
+        r"lab record", r"report", r"before", r"by tomorrow", r"jama karna", r"jama", r"last date",
+        r"project", r"quiz", r"internal", r"practical"
     ]
     for p in patterns:
         if re.search(p, lowered):
@@ -20,7 +20,7 @@ def keyword_baseline_predict(text: str) -> bool:
 
 def read_labeled(path):
     rows = []
-    with open(path, newline=\"\", encoding=\"utf-8\") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             rows.append(row)
@@ -28,11 +28,11 @@ def read_labeled(path):
 
 
 class MultinomialNaiveBayes:
-    \"\"\"
+    """
     Pure-Python multinomial Naive Bayes text classifier.
     Tokenises with re (lowercased). Uses unigrams + bigrams.
     Laplace smoothing alpha=1, log-probabilities for numerical stability.
-    \"\"\"
+    """
     def __init__(self, alpha=1.0):
         self.alpha = alpha
         self.class_log_prior = {}
@@ -83,9 +83,9 @@ class MultinomialNaiveBayes:
 
 
 def train_tfidf_logreg(train_rows):
-    \"\"\"Train a pure-Python multinomial Naive Bayes classifier on dev split rows.\"\"\"
-    X = [r.get(\"text\", \"\") for r in train_rows]
-    y = [1 if r.get(\"gold_label\") == \"commitment\" else 0 for r in train_rows]
+    """Train a pure-Python multinomial Naive Bayes classifier on dev split rows."""
+    X = [r.get("text", "") for r in train_rows]
+    y = [1 if r.get("gold_label") == "commitment" else 0 for r in train_rows]
     clf = MultinomialNaiveBayes(alpha=1.0)
     if len(set(y)) >= 1:
         clf.fit(X, y)
@@ -94,14 +94,14 @@ def train_tfidf_logreg(train_rows):
 
 def evaluate_tfidf_logreg(labeled_csv_path):
     rows = read_labeled(labeled_csv_path)
-    train_rows = [r for r in rows if r.get(\"split\") == \"dev\"]
-    test_rows = [r for r in rows if r.get(\"split\") == \"test\"]
+    train_rows = [r for r in rows if r.get("split") == "dev"]
+    test_rows = [r for r in rows if r.get("split") == "test"]
     pipe = train_tfidf_logreg(train_rows)
     preds = {}
     for r in test_rows:
-        mid = r[\"message_id\"]
+        mid = r["message_id"]
         try:
-            pred = pipe.predict([r.get(\"text\", \"\")])[0]
+            pred = pipe.predict([r.get("text", "")])[0]
         except Exception:
             pred = 0
         preds[mid] = bool(pred)
@@ -110,9 +110,9 @@ def evaluate_tfidf_logreg(labeled_csv_path):
 
 def evaluate_keyword(labeled_csv_path):
     rows = read_labeled(labeled_csv_path)
-    test_rows = [r for r in rows if r.get(\"split\") == \"test\"]
+    test_rows = [r for r in rows if r.get("split") == "test"]
     preds = {}
     for r in test_rows:
-        mid = r[\"message_id\"]
-        preds[mid] = keyword_baseline_predict(r.get(\"text\", \"\"))
+        mid = r["message_id"]
+        preds[mid] = keyword_baseline_predict(r.get("text", ""))
     return preds, test_rows
