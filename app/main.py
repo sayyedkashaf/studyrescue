@@ -24,6 +24,7 @@ from app.routes.review import router as review_router
 from app.routes.evaluation import router as evaluation_router
 from app.routes.settings import router as settings_router
 from app.routes.dashboard import router as dashboard_router
+from app.routes.landing import router as landing_router
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ app.include_router(review_router)
 app.include_router(evaluation_router)
 app.include_router(settings_router)
 app.include_router(dashboard_router)
+app.include_router(landing_router)
 
 
 # ── Root / Landing placeholder ───────────────────────────────────────

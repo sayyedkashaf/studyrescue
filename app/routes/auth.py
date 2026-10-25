@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from pathlib import Path
 
-from app.config import APP_NAME
+from app.config import APP_NAME, INVITE_CODE
 from app.db import get_db
 from app.models import User, UserSettings
 from app.auth.security import (

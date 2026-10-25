@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 
 from app.config import APP_NAME
 from app.db import get_db
-from app.models import User, UserSettings
+from app.models import User, UserSettings, ImportBatch, Message, ExtractionRun, Candidate, Task, TaskHistory
 from app.auth.deps import get_current_user
 from app.auth.security import generate_csrf_token, verify_csrf_token
+
+router = APIRouter(prefix="/settings", tags=["settings"])
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -90,3 +92,47 @@ def settings_update(
     settings.free_hours_per_day = hours
     db.commit()
     return RedirectResponse(url="/settings", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/delete-data", response_class=HTMLResponse)
+def delete_data_page(request: Request, current_user: User = Depends(get_current_user)):
+    return templates.TemplateResponse(
+        request=request,
+        name="settings/delete_data.html",
+        context={
+            "app_name": APP_NAME,
+            "current_user": current_user,
+            "active_page": "settings",
+            "csrf_token": generate_csrf_token(),
+        },
+    )
+
+
+@router.post("/delete-data", response_class=HTMLResponse)
+def delete_data(request: Request, csrf_token: str = Form(""), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not verify_csrf_token(csrf_token):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid security token")
+    uid = current_user.id
+    try:
+        db.query(TaskHistory).filter(TaskHistory.user_id == uid).delete(synchronize_session=False)
+        db.query(Task).filter(Task.user_id == uid).delete(synchronize_session=False)
+        db.query(Candidate).filter(Candidate.user_id == uid).delete(synchronize_session=False)
+        db.query(ExtractionRun).filter(ExtractionRun.user_id == uid).delete(synchronize_session=False)
+        db.query(Message).filter(Message.user_id == uid).delete(synchronize_session=False)
+        db.query(ImportBatch).filter(ImportBatch.user_id == uid).delete(synchronize_session=False)
+        db.query(UserSettings).filter(UserSettings.user_id == uid).delete(synchronize_session=False)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    return templates.TemplateResponse(
+        request=request,
+        name="settings/delete_data.html",
+        context={
+            "app_name": APP_NAME,
+            "current_user": current_user,
+            "active_page": "settings",
+            "csrf_token": generate_csrf_token(),
+            "message": "Your data has been deleted. Note: this deletes data stored in this app but cannot remove text already sent to the AI provider.",
+        },
+    )

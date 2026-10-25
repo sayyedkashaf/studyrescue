@@ -1,0 +1,6 @@
+{% if message %}<p>{{ message }}</p>{% endif %}
+<p>This deletes data stored in this app but cannot remove text already sent to the AI provider.</p>
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+  <button type="submit">Confirm delete data</button>
+</form>

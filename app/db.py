@@ -6,26 +6,32 @@ Uses a single SQLite file as specified in config.DATABASE_URL.
 from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+import os
 
 from app.config import DATABASE_URL
 
-# Ensure the data/ directory exists for the SQLite file
-_db_path = DATABASE_URL.replace("sqlite:///", "")
-Path(_db_path).parent.mkdir(parents=True, exist_ok=True)
+if DATABASE_URL.startswith("sqlite"):
+    _db_path = DATABASE_URL.replace("sqlite:///", "")
+    if _db_path and _db_path != ":memory:":
+        Path(_db_path).parent.mkdir(parents=True, exist_ok=True)
+
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # required for SQLite
+    connect_args=connect_args,
     echo=False,
 )
 
 
 @event.listens_for(engine, "connect")
 def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
-    # SQLite ignores foreign keys unless switched on for every connection
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+    if DATABASE_URL.startswith("sqlite"):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
