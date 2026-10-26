@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import APP_NAME
 from app.db import get_db
-from app.models import User, UserSettings
+from app.models import User, UserSettings, Task
 from app.auth.deps import get_current_user
 from app.services import task_service
 from app.planning.feasibility import check_feasibility
@@ -27,11 +27,12 @@ def dashboard_page(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    open_tasks = task_service.list_tasks(db, current_user.id, status_filter="open")
-    completed_tasks = task_service.list_tasks(db, current_user.id, status_filter="completed")
-    overdue_tasks = task_service.list_tasks(db, current_user.id, status_filter="overdue")
+    all_tasks = db.query(Task).filter(Task.user_id == current_user.id).all()
+    open_tasks = [t for t in all_tasks if t.status in ("pending", "in_progress")]
+    completed_tasks = [t for t in all_tasks if t.status == "completed"]
+    overdue_tasks = [t for t in all_tasks if t.status in ("pending", "in_progress") and t.deadline and t.deadline < date.today()]
     today = date.today()
-    due_soon = [t for t in open_tasks if t.deadline and today <= t.deadline <= today + timedelta(days=7)]
+    due_this_week = [t for t in open_tasks if t.deadline and today <= t.deadline <= today + timedelta(days=7)]
 
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
     free_hours = settings.free_hours_per_day if settings else 3.0
@@ -41,28 +42,42 @@ def dashboard_page(
     priority = {"infeasible": 0, "tight": 1, "feasible": 2}
     ranked = sorted(feasibility.tasks, key=lambda x: (priority.get(x["status"], 3), x["days_left"]))
     risk_list = []
-    for item in ranked[:5]:
+    for item in ranked:
         risk_list.append({
             "title": getattr(item["task"], "title", None),
             "deadline": item["deadline"],
-            "risk": "Risk: " + risk_level(status=item["status"], days_left=item["days_left"], overdue=item["deadline"] < today),
+            "status": item["status"],
+            "needed": item["needed"],
+            "available": item["available"],
+            "slack": item["slack"],
+            "risk": "Risk: " + risk_level(status=item["status"], days_left=item["days_left"], overdue=(item["deadline"] < today)),
             "sentence": item["sentence"],
         })
 
     risk_message = "Add estimates to see deadline risk." if not feasibility.tasks else None
+    what_to_do_next = None
+    if open_tasks:
+        with_deadline = [t for t in open_tasks if t.deadline]
+        if with_deadline:
+            what_to_do_next = sorted(with_deadline, key=lambda x: (x.deadline, x.id))[0]
+        else:
+            what_to_do_next = open_tasks[0]
 
     return templates.TemplateResponse(
         request=request,
         name="dashboard/index.html",
         context={
             "app_name": APP_NAME,
+            "current_user": current_user,
             "user": current_user,
             "active_page": "dashboard",
             "open_count": len(open_tasks),
             "completed_count": len(completed_tasks),
             "overdue_count": len(overdue_tasks),
-            "due_soon_count": len(due_soon),
+            "due_this_week_count": len(due_this_week),
             "risk_list": risk_list,
             "risk_message": risk_message,
+            "what_to_do_next": what_to_do_next,
+            "has_tasks": len(all_tasks) > 0,
         },
     )

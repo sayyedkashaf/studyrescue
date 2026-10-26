@@ -1,5 +1,5 @@
 from pathlib import Path
-import glob as _glob
+import json
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -14,18 +14,29 @@ router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 _templates_dir = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_templates_dir))
 
-_REPORTS_DIR = Path(__file__).resolve().parent.parent.parent / "eval" / "reports"
+_RESULTS_DIR = Path(__file__).resolve().parent.parent.parent / "eval" / "results"
 
 
 @router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
 def evaluation_page(request: Request, current_user: User = Depends(get_current_user)):
-    report_text = None
-    md_files = sorted(_REPORTS_DIR.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True) if _REPORTS_DIR.exists() else []
-    if md_files:
-        report_text = md_files[0].read_text(encoding="utf-8")
-    else:
-        report_text = "No evaluation report yet. Run eval/run_eval.py."
+    results = None
+    if _RESULTS_DIR.exists():
+        json_files = sorted(_RESULTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if json_files:
+            with open(json_files[0], encoding="utf-8") as f:
+                results = json.load(f)
+    if results is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="evaluation/index.html",
+            context={
+                "app_name": APP_NAME,
+                "current_user": current_user,
+                "active_page": "evaluation",
+                "results": None,
+            },
+        )
     return templates.TemplateResponse(
         request=request,
         name="evaluation/index.html",
@@ -33,6 +44,6 @@ def evaluation_page(request: Request, current_user: User = Depends(get_current_u
             "app_name": APP_NAME,
             "current_user": current_user,
             "active_page": "evaluation",
-            "report_text": report_text,
+            "results": results,
         },
     )

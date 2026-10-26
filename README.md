@@ -1,11 +1,5 @@
 # Study Rescue
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live_on_GitHub_Pages-blue?style=for-the-badge&logo=github)](https://sayyedkashaf.github.io/studyrescue/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
-
-**Live Demo Link**: [https://sayyedkashaf.github.io/studyrescue/](https://sayyedkashaf.github.io/studyrescue/)
-
 Study Rescue is a web app that turns WhatsApp study-group chats into tracked assignments, exams, and submissions, then helps students plan around them.
 
 ## Architecture
@@ -27,17 +21,17 @@ uvicorn app.main:app --reload
 pytest
 ```
 
-## Run the evaluation
+## How to run the evaluation
 
 ```bash
 python -m eval.run_eval --split dev
 python -m eval.run_eval --split test --final
 ```
 
-## Export a WhatsApp chat
+## How to export a WhatsApp chat
 
 Export a chat from WhatsApp (Android or iOS) as a `.txt` file, then upload it through the imports page.
 
-## What is and is not machine learning here
+## What is and is not machine learning in this project
 
-Machine learning is used only for extracting candidate tasks from message text. Date resolution, feasibility checks, risk levels, and all planning logic are deterministic rule-based code.
+Only the overrun median and the Naive Bayes baseline are statistical. The LLM does extraction. All other logic, including date resolution, feasibility checks, risk levels, and planning, is deterministic rule-based code.

@@ -2,11 +2,25 @@
 
 {% block content %}
 <h1>Welcome, {{ user.display_name }}</h1>
-<p>Open: {{ open_count }} Completed: {{ completed_count }} Overdue: {{ overdue_count }} Due soon: {{ due_soon_count }}</p>
+
+{% if not has_tasks %}
+<p>Empty state: No tasks yet.</p>
+{% else %}
+<p>Open: {{ open_count }} | Completed: {{ completed_count }} | Overdue: {{ overdue_count }} | Due this week: {{ due_this_week_count }}</p>
+
+<h2>Risk list</h2>
 {% if risk_message %}<p>{{ risk_message }}</p>{% endif %}
 <ul>
 {% for r in risk_list %}
-  <li>{{ r.title }} - {{ r.deadline }} - {{ r.risk }} - {{ r.sentence }}</li>
+  <li>{{ r.title }} - {{ r.deadline }} - {{ r.status }} (needed: {{ r.needed }}, available: {{ r.available }}, slack: {{ r.slack }}) - {{ r.risk }} - {{ r.sentence }}</li>
 {% endfor %}
 </ul>
+
+<h2>What to do next</h2>
+{% if what_to_do_next %}
+<p>Earliest deadline: {{ what_to_do_next.title }}{% if what_to_do_next.deadline %} - {{ what_to_do_next.deadline }}{% endif %}</p>
+{% else %}
+<p>No open tasks.</p>
+{% endif %}
+{% endif %}
 {% endblock %}

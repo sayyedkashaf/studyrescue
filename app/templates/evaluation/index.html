@@ -1,4 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-<pre>{{ report_text }}</pre>
+{% if results %}
+<table>
+  <thead>
+    <tr><th>Model</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>keyword</td><td>{{ results.keyword.precision }}</td><td>{{ results.keyword.recall }}</td><td>{{ results.keyword.f1 }}</td></tr>
+    <tr><td>tfidf</td><td>{{ results.tfidf.precision }}</td><td>{{ results.tfidf.recall }}</td><td>{{ results.tfidf.f1 }}</td></tr>
+    <tr><td>gemini</td><td>{{ results.gemini.precision }}</td><td>{{ results.gemini.recall }}</td><td>{{ results.gemini.f1 }}</td></tr>
+  </tbody>
+</table>
+{% else %}
+<p>No evaluation report yet</p>
+{% endif %}
 {% endblock %}

@@ -13,8 +13,6 @@ from app.auth.security import generate_csrf_token, verify_csrf_token
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
-router = APIRouter(prefix="/settings", tags=["settings"])
-
 _templates_dir = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_templates_dir))
 
