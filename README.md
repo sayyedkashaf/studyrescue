@@ -1,5 +1,11 @@
 # Study Rescue
 
+[![Live Demo](https://img.shields.io/badge/Demo-Live_on_GitHub_Pages-blue?style=for-the-badge&logo=github)](https://sayyedkashaf.github.io/studyrescue/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+
+**Live Demo Link**: [https://sayyedkashaf.github.io/studyrescue/](https://sayyedkashaf.github.io/studyrescue/)
+
 Study Rescue is a web app that turns WhatsApp study-group chats into tracked assignments, exams, and submissions, then helps students plan around them.
 
 ## Architecture

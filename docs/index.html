@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Rescue – Turn WhatsApp Group Chats into Tracked Academic Tasks</title>
+  <meta name="description" content="AI-powered academic task extraction and deterministic planning engine for WhatsApp study group chats.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --bg-card: #0f172a;
+      --bg-card-hover: #162036;
+      --border: #1e293b;
+      --border-bright: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.25);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --radius-sm: 8px;
+      --radius: 14px;
+      --radius-lg: 20px;
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Ambient Background Glow */
+    .glow-sphere {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-glow) 0%, rgba(0,0,0,0) 70%);
+      top: -150px;
+      right: -100px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-sphere-2 {
+      position: fixed;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, rgba(0,0,0,0) 70%);
+      bottom: -100px;
+      left: -100px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header & Nav */
+    header {
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9, 13, 22, 0.85);
+    }
+
+    .nav-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.15rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-bright);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--text-muted);
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    .btn-danger-outline:hover {
+      background: var(--danger-bg);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 4rem 0 2.5rem;
+      text-align: center;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-bright);
+      color: #93c5fd;
+      font-size: 0.82rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 span.gradient {
+      background: linear-gradient(135deg, #60a5fa 20%, #a78bfa 70%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+
+    /* Interactive Demo Card Shell */
+    .demo-shell {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      margin: 1.5rem 0 4rem;
+      overflow: hidden;
+    }
+
+    .demo-header-bar {
+      padding: 1rem 1.5rem;
+      background: rgba(15, 23, 42, 0.7);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .tab-badge {
+      background: #1e293b;
+      color: #cbd5e1;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+
+    .tab-content {
+      padding: 2rem;
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Ingestion Tab */
+    .ingest-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .ingest-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sample-picker {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .chip-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-bright);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip-btn:hover, .chip-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .chat-box {
+      background: #080c14;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      height: 380px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .chat-bubble {
+      margin-bottom: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      background: #131b2e;
+      border-left: 3px solid var(--primary);
+    }
+
+    .chat-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-sender {
+      font-weight: 600;
+      color: #93c5fd;
+    }
+
+    .chat-text {
+      color: #e2e8f0;
+      white-space: pre-wrap;
+    }
+
+    .chat-text mark {
+      background: rgba(245, 158, 11, 0.3);
+      color: #fde68a;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+    }
+
+    .ai-analysis-card {
+      background: #080c14;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-text h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .step-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Candidate Cards */
+    .candidate-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .candidate-card {
+      background: #080c14;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.25rem;
+      transition: border-color 0.2s;
+    }
+
+    .candidate-card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .cand-info {
+      flex: 1;
+    }
+
+    .cand-tags {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .tag-course {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .tag-type {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+    }
+
+    .cand-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: #f1f5f9;
+    }
+
+    .cand-deadline {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .cand-deadline strong {
+      color: #38bdf8;
+    }
+
+    .cand-quote {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 0.35rem;
+    }
+
+    .cand-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Tasks Table */
+    .overrun-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid var(--border-bright);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .overrun-val {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #60a5fa;
+      font-family: var(--font-heading);
+    }
+
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .task-table th {
+      text-align: left;
+      padding: 0.85rem 1rem;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-table td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.6);
+      vertical-align: middle;
+    }
+
+    .task-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-open {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+    }
+
+    .status-completed {
+      background: var(--success-bg);
+      color: #34d399;
+    }
+
+    .risk-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .risk-high {
+      background: var(--danger-bg);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .risk-medium {
+      background: var(--warning-bg);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .risk-low {
+      background: var(--success-bg);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Planning & Schedule */
+    .planner-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 800px) {
+      .planner-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .schedule-day {
+      background: #080c14;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .schedule-day-header {
+      display: flex;
+      justify-content: space-between;
+      color: #93c5fd;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .schedule-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: 0.35rem 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+
+    /* Architecture Features */
+    .features-section {
+      padding: 4rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .section-title h2 {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: all 0.25s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-sphere"></div>
+  <div class="glow-sphere-2"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav-wrapper">
+      <a href="#" class="brand">
+        <div class="brand-icon">📚</div>
+        <div>
+          <span class="brand-title">Study Rescue</span>
+          <span class="brand-badge">v1.0 Live Demo</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="#demo" class="nav-link">Interactive Demo</a>
+        <a href="#architecture" class="nav-link">Architecture</a>
+        <a href="#deploy" class="nav-link">Backend Deploy</a>
+        <a id="github-link" href="https://github.com/sayyedkashaf/studyrescue" target="_blank" class="btn btn-outline btn-sm">
+          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          GitHub Repository
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-pill">
+        <span>⚡ WhatsApp Study-Group Extraction & Smart Academic Planner</span>
+      </div>
+      <h1>
+        Turn Chaotic Class Chats into a<br>
+        <span class="gradient">Bulletproof Study Schedule</span>
+      </h1>
+      <p>
+        Study Rescue automatically parses WhatsApp messages, extracts task deadlines using AI, resolves relative dates deterministically, and dynamically calibrates study overrun risk.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="#demo" class="btn btn-primary">Try Interactive Simulator</a>
+        <a href="#architecture" class="btn btn-outline">Explore Deterministic Engine</a>
+      </div>
+    </section>
+
+    <!-- Interactive App Demo -->
+    <section id="demo" class="demo-shell">
+      <div class="demo-header-bar">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('tab-ingest')">
+            💬 1. Ingest Chat
+          </button>
+          <button class="tab-btn" onclick="switchTab('tab-candidates')">
+            🎯 2. Candidate Review <span class="tab-badge" id="cand-count">4</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('tab-tasks')">
+            📋 3. Tracked Tasks <span class="tab-badge" id="task-count">3</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('tab-planner')">
+            ⚡ 4. Feasibility & Risk Plan
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: #60a5fa; font-weight: 600;">
+          🟢 Simulation Engine Ready
+        </div>
+      </div>
+
+      <!-- TAB 1: Ingestion -->
+      <div id="tab-ingest" class="tab-content active">
+        <div class="ingest-grid">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label style="font-weight: 600; font-size: 0.9rem;">WhatsApp Export Feed</label>
+              <div class="sample-picker">
+                <button class="chip-btn active" onclick="loadSample('ds')">DS Sem 5 Chat</button>
+                <button class="chip-btn" onclick="loadSample('exam')">Midterm Crunch</button>
+                <button class="chip-btn" onclick="loadSample('lab')">Lab Submissions</button>
+              </div>
+            </div>
+
+            <div class="chat-box" id="chatDisplay">
+              <!-- Rendered messages will appear here -->
+            </div>
+          </div>
+
+          <div class="ai-analysis-card">
+            <div>
+              <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; font-size: 1.15rem;">
+                🧠 Ingestion Pipeline
+              </h3>
+              
+              <div class="pipeline-step">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                  <h4>WhatsApp Regex Tokenizer</h4>
+                  <p>Parses sender headers, clean multi-line text, and exact message timestamps.</p>
+                </div>
+              </div>
+
+              <div class="pipeline-step">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                  <h4>LLM Candidate Extraction</h4>
+                  <p>Distinguishes actual academic obligations from casual banter, memes, and jokes.</p>
+                </div>
+              </div>
+
+              <div class="pipeline-step">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                  <h4>Deterministic Date Resolution</h4>
+                  <p>Pins phrases like <em>"kal 5 baje"</em> or <em>"Friday 9th Oct"</em> to exact calendar datetimes relative to message time.</p>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+              <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="runExtraction()">
+                ✨ Extract Tasks with AI & Parse Deadlines
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Candidate Review -->
+      <div id="tab-candidates" class="tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem;">Extracted Candidate Tasks</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Review tasks identified by the LLM before committing them to your study plan.</p>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="acceptAllCandidates()">
+            ✅ Accept All Valid Tasks
+          </button>
+        </div>
+
+        <div class="candidate-list" id="candidateList">
+          <!-- Candidate cards rendered via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 3: Tasks & Overrun -->
+      <div id="tab-tasks" class="tab-content">
+        <!-- Overrun Multiplier Banner -->
+        <div class="overrun-card">
+          <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 0.05em; display: block;">
+              Personal Overrun Multiplier
+            </span>
+            <div style="display: flex; align-items: baseline; gap: 0.6rem; margin-top: 0.2rem;">
+              <span class="overrun-val" id="overrunVal">1.25x</span>
+              <span style="font-size: 0.85rem; color: #94a3b8;">(based on completed task history)</span>
+            </div>
+          </div>
+          <div style="max-width: 480px; font-size: 0.82rem; color: #cbd5e1; background: rgba(0,0,0,0.25); padding: 0.6rem 1rem; border-radius: 8px;">
+            💡 <strong>Calibration Active:</strong> Your historical tasks took 25% longer than planned. Future work is automatically scaled to prevent last-minute cramming.
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Course</th>
+                <th>Task Title</th>
+                <th>Deadline</th>
+                <th>Est. Hours</th>
+                <th>Calibrated</th>
+                <th>Risk</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="taskTableBody">
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 4: Planner & Feasibility -->
+      <div id="tab-planner" class="tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.3rem;">Workload Feasibility & Risk Engine</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Calculates study capacity and flags deadlines that are at high risk of failure.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; background: #080c14; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="font-size: 0.8rem; color: #94a3b8;">Daily Study Hours:</label>
+            <input type="number" id="dailyHours" value="3.5" step="0.5" min="1" max="12" style="width: 60px; background: #1e293b; border: 1px solid var(--border-bright); color: white; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center;" onchange="renderPlanner()">
+          </div>
+        </div>
+
+        <div class="planner-grid">
+          <div>
+            <h4 style="font-size: 1rem; margin-bottom: 1rem; color: #93c5fd;">🚨 Risk Assessment</h4>
+            <div id="riskCards">
+              <!-- Rendered risk items -->
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 1rem; margin-bottom: 1rem; color: #93c5fd;">📅 Auto-Generated Daily Schedule</h4>
+            <div id="scheduleBreakdown">
+              <!-- Rendered schedule -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="features-section">
+      <div class="section-title">
+        <h2>What Makes Study Rescue Different</h2>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+          Study Rescue separates machine learning from deterministic logic for 100% predictable, tamper-proof academic planning.
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>Scoped LLM Extraction</h3>
+          <p>
+            Machine learning is used solely to discover candidate task objects and extract raw snippets. It ignores gossip, joke assignments, and false alarms.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⏱️</div>
+          <h3>Deterministic Date Anchor</h3>
+          <p>
+            Language models frequently hallucinate calendar dates. Study Rescue resolves all relative dates (e.g. <em>"tomorrow 5pm"</em>, <em>"next Monday"</em>) using strict arithmetic against the message timestamp.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📈</div>
+          <h3>Self-Calibrating Overruns</h3>
+          <p>
+            Students regularly underestimate effort. The system tracks actual effort logged against estimates, calculating an individual overrun multiplier.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Backend Deploy Section -->
+    <section id="deploy" class="features-section" style="padding-bottom: 6rem;">
+      <div class="section-title">
+        <h2>Deploy the Full FastAPI Backend</h2>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+          The complete backend repository runs on FastAPI, SQLite / Neon Postgres, and Jinja2 templates.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; max-width: 800px; margin: 0 auto;">
+        <h4 style="color: #60a5fa; margin-bottom: 1rem; font-family: var(--font-heading);">Run Locally in 3 Steps</h4>
+        <pre style="background: #080c14; padding: 1.25rem; border-radius: 8px; color: #e2e8f0; font-size: 0.88rem; overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid var(--border);"><code>git clone https://github.com/sayyedkashaf/studyrescue.git
+cd studyrescue
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload</code></pre>
+
+        <h4 style="color: #60a5fa; margin-bottom: 0.75rem; font-family: var(--font-heading);">Deploy on Render + Neon PostgreSQL</h4>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+          Connect your GitHub repo to Render, set <code>DATABASE_URL</code> pointing to Neon Postgres, set your <code>GEMINI_API_KEY</code>, and launch with build command <code>pip install -r requirements.txt</code> and start command <code>uvicorn app.main:app --host 0.0.0.0 --port $PORT</code>.
+        </p>
+        <a href="https://github.com/sayyedkashaf/studyrescue" target="_blank" class="btn btn-primary btn-sm">
+          View Repository on GitHub →
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Study Rescue · Created by <a href="https://github.com/sayyedkashaf" target="_blank">Sayyed Kashaf</a> · Hosted with GitHub Pages</p>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    // Sample datasets
+    const sampleChats = {
+      ds: [
+        { sender: "Neha (CR)", time: "05/10/26, 11:20 am", text: "Data Mining assignment 2 is up on the portal. Submit by Friday 9th Oct before 5 pm." },
+        { sender: "Karan", time: "05/10/26, 11:22 am", text: "bro 4 din me kaise hoga 😭" },
+        { sender: "Neha (CR)", time: "06/10/26, 8:57 am", text: "Confirmed: Power BI internal test 14th Oct, 10 am, Room 204. Units 1,2,3" },
+        { sender: "Sneha", time: "06/10/26, 4:00 pm", text: "Python lab record kal tak jama karna hai, Mehta ma'am ne bola" },
+        { sender: "Riya", time: "06/10/26, 7:45 pm", text: "Reminder: Mini project topic selection form has to be filled by Sunday night. Pls don't forget" }
+      ],
+      exam: [
+        { sender: "Prof. Sharma", time: "12/10/26, 9:00 am", text: "Advanced Machine Learning Quiz 2 will be held on Thursday 15th Oct at 2:00 PM." },
+        { sender: "Amit", time: "12/10/26, 9:15 am", text: "Sir is syllabus including CNNs?" },
+        { sender: "Prof. Sharma", time: "12/10/26, 9:30 am", text: "Yes, Modules 3 and 4 including CNN architectures." }
+      ],
+      lab: [
+        { sender: "Lab Assistant", time: "10/10/26, 2:00 pm", text: "Cloud Computing Lab 4 submission deadline is Tuesday 13th Oct 11:59 PM." },
+        { sender: "Neha (CR)", time: "10/10/26, 2:05 pm", text: "Upload code zip and PDF report on Classroom." }
+      ]
+    };
+
+    let candidates = [
+      {
+        id: 1,
+        course: "Data Mining",
+        type: "Assignment",
+        title: "Assignment 2 - Clustering & Decision Trees",
+        rawDeadline: "Friday 9th Oct before 5 pm",
+        resolvedDeadline: "2026-10-09 17:00",
+        confidence: "98%",
+        quote: "Submit by Friday 9th Oct before 5 pm.",
+        estHours: 6.0
+      },
+      {
+        id: 2,
+        course: "Power BI",
+        type: "Exam",
+        title: "Internal Test 1 (Units 1 to 3)",
+        rawDeadline: "14th Oct, 10 am",
+        resolvedDeadline: "2026-10-14 10:00",
+        confidence: "95%",
+        quote: "Power BI internal test 14th Oct, 10 am, Room 204",
+        estHours: 8.0
+      },
+      {
+        id: 3,
+        course: "Python Lab",
+        type: "Lab Record",
+        title: "Python Lab Record Submission",
+        rawDeadline: "kal tak (tomorrow by end of day)",
+        resolvedDeadline: "2026-10-07 18:00",
+        confidence: "89%",
+        quote: "Python lab record kal tak jama karna hai",
+        estHours: 3.5
+      },
+      {
+        id: 4,
+        course: "Mini Project",
+        type: "Submission",
+        title: "Mini Project Topic Selection Form",
+        rawDeadline: "Sunday night 11:59 pm",
+        resolvedDeadline: "2026-10-11 23:59",
+        confidence: "92%",
+        quote: "Mini project topic selection form has to be filled by Sunday night",
+        estHours: 1.5
+      }
+    ];
+
+    let tasks = [
+      {
+        id: 101,
+        course: "Data Mining",
+        title: "Assignment 2 - Clustering & Decision Trees",
+        deadline: "2026-10-09 17:00",
+        estHours: 6.0,
+        status: "Open",
+        completed: false
+      },
+      {
+        id: 102,
+        course: "Power BI",
+        title: "Internal Test 1 Preparation",
+        deadline: "2026-10-14 10:00",
+        estHours: 8.0,
+        status: "Open",
+        completed: false
+      },
+      {
+        id: 103,
+        course: "Linear Algebra",
+        title: "Problem Set 4 (Eigenvectors)",
+        deadline: "2026-10-04 23:59",
+        estHours: 4.0,
+        actualHours: 5.0,
+        status: "Completed",
+        completed: true
+      }
+    ];
+
+    let overrunMultiplier = 1.25;
+
+    function renderChat(chatKey) {
+      const msgs = sampleChats[chatKey] || sampleChats.ds;
+      const box = document.getElementById('chatDisplay');
+      box.innerHTML = msgs.map(m => `
+        <div class="chat-bubble">
+          <div class="chat-meta">
+            <span class="chat-sender">${m.sender}</span>
+            <span>${m.time}</span>
+          </div>
+          <div class="chat-text">${highlightDates(m.text)}</div>
+        </div>
+      `).join('');
+    }
+
+    function highlightDates(text) {
+      return text.replace(/(Friday 9th Oct|14th Oct, 10 am|kal tak|Sunday night|Thursday 15th Oct|Tuesday 13th Oct)/gi, '<mark>$1</mark>');
+    }
+
+    function loadSample(key) {
+      document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderChat(key);
+    }
+
+    function renderCandidates() {
+      const container = document.getElementById('candidateList');
+      document.getElementById('cand-count').textContent = candidates.length;
+
+      if (candidates.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem; background: #080c14; border-radius: 12px; border: 1px dashed var(--border);">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
+            <p style="color: var(--text-muted);">All extracted tasks have been reviewed and accepted!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = candidates.map(c => `
+        <div class="candidate-card" id="cand-${c.id}">
+          <div class="cand-info">
+            <div class="cand-tags">
+              <span class="tag tag-course">${c.course}</span>
+              <span class="tag tag-type">${c.type}</span>
+              <span style="font-size: 0.72rem; color: #10b981; font-weight: 600;">Confidence: ${c.confidence}</span>
+            </div>
+            <div class="cand-title">${c.title}</div>
+            <div class="cand-deadline">
+              <span>📅 Resolved: <strong>${c.resolvedDeadline}</strong></span>
+              <span style="color: var(--text-dim);">• Mentioned: "${c.rawDeadline}"</span>
+            </div>
+            <div class="cand-quote">"${c.quote}"</div>
+          </div>
+          <div class="cand-actions">
+            <button class="btn btn-outline btn-sm" onclick="acceptCandidate(${c.id})">Accept</button>
+            <button class="btn btn-danger-outline btn-sm" onclick="rejectCandidate(${c.id})">Dismiss</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function acceptCandidate(id) {
+      const index = candidates.findIndex(c => c.id === id);
+      if (index !== -1) {
+        const item = candidates[index];
+        tasks.push({
+          id: Date.now(),
+          course: item.course,
+          title: item.title,
+          deadline: item.resolvedDeadline,
+          estHours: item.estHours,
+          status: "Open",
+          completed: false
+        });
+        candidates.splice(index, 1);
+        renderCandidates();
+        renderTasks();
+        renderPlanner();
+      }
+    }
+
+    function rejectCandidate(id) {
+      candidates = candidates.filter(c => c.id !== id);
+      renderCandidates();
+    }
+
+    function acceptAllCandidates() {
+      candidates.forEach(item => {
+        tasks.push({
+          id: Date.now() + Math.random(),
+          course: item.course,
+          title: item.title,
+          deadline: item.resolvedDeadline,
+          estHours: item.estHours,
+          status: "Open",
+          completed: false
+        });
+      });
+      candidates = [];
+      renderCandidates();
+      renderTasks();
+      renderPlanner();
+    }
+
+    function renderTasks() {
+      const tbody = document.getElementById('taskTableBody');
+      const openCount = tasks.filter(t => !t.completed).length;
+      document.getElementById('task-count').textContent = openCount;
+
+      tbody.innerHTML = tasks.map(t => {
+        const calibrated = (t.estHours * overrunMultiplier).toFixed(1);
+        const risk = getRiskLevel(t);
+        return `
+          <tr>
+            <td>
+              <span class="status-badge ${t.completed ? 'status-completed' : 'status-open'}">
+                ${t.completed ? '✓ Done' : '⏳ Open'}
+              </span>
+            </td>
+            <td><strong style="color: #c4b5fd;">${t.course}</strong></td>
+            <td style="font-weight: 500;">${t.title}</td>
+            <td style="font-family: monospace; font-size: 0.82rem; color: #38bdf8;">${t.deadline}</td>
+            <td>${t.estHours}h</td>
+            <td style="font-weight: 600; color: #60a5fa;">${calibrated}h</td>
+            <td><span class="risk-pill risk-${risk.toLowerCase()}">${risk}</span></td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="toggleTask(${t.id})">
+                ${t.completed ? 'Reopen' : 'Complete'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function getRiskLevel(task) {
+      if (task.completed) return 'Low';
+      const hoursLeft = task.estHours * overrunMultiplier;
+      if (hoursLeft >= 7) return 'High';
+      if (hoursLeft >= 4) return 'Medium';
+      return 'Low';
+    }
+
+    function toggleTask(id) {
+      const t = tasks.find(item => item.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        t.status = t.completed ? 'Completed' : 'Open';
+        renderTasks();
+        renderPlanner();
+      }
+    }
+
+    function renderPlanner() {
+      const dailyCap = parseFloat(document.getElementById('dailyHours').value) || 3.5;
+      const riskContainer = document.getElementById('riskCards');
+      const schedContainer = document.getElementById('scheduleBreakdown');
+
+      const openTasks = tasks.filter(t => !t.completed);
+      const totalCalibratedHours = openTasks.reduce((acc, t) => acc + (t.estHours * overrunMultiplier), 0);
+
+      // Risk Breakdown Cards
+      riskContainer.innerHTML = openTasks.map(t => {
+        const cal = (t.estHours * overrunMultiplier).toFixed(1);
+        const risk = getRiskLevel(t);
+        return `
+          <div class="schedule-day" style="border-left: 3px solid ${risk === 'High' ? '#ef4444' : risk === 'Medium' ? '#f59e0b' : '#10b981'};">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>${t.title}</strong>
+              <span class="risk-pill risk-${risk.toLowerCase()}">${risk} Risk</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">
+              Requires <strong>${cal}h</strong> study time before <strong>${t.deadline}</strong>.
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Auto-schedule
+      let remaining = totalCalibratedHours;
+      let days = [];
+      let dayIndex = 1;
+      const today = new Date();
+
+      while (remaining > 0 && dayIndex <= 5) {
+        const allocated = Math.min(dailyCap, remaining);
+        const dayDate = new Date(today);
+        dayDate.setDate(today.getDate() + dayIndex);
+        days.push({
+          dateStr: dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          hours: allocated.toFixed(1)
+        });
+        remaining -= allocated;
+        dayIndex++;
+      }
+
+      schedContainer.innerHTML = days.map((d, i) => `
+        <div class="schedule-day">
+          <div class="schedule-day-header">
+            <span>📅 ${d.dateStr}</span>
+            <span>Allocated: ${d.hours} hrs</span>
+          </div>
+          <div class="schedule-item">
+            <span>Study Block Focus: Focus on high-risk task prep</span>
+            <span>${d.hours}h</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function runExtraction() {
+      const btn = event.currentTarget;
+      btn.innerHTML = '⏳ Extracting tasks & calculating dates...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.innerHTML = '✨ Extract Tasks with AI & Parse Deadlines';
+        btn.disabled = false;
+        // switch to candidates tab
+        document.querySelectorAll('.tab-btn')[1].click();
+      }, 700);
+    }
+
+    // Init
+    renderChat('ds');
+    renderCandidates();
+    renderTasks();
+    renderPlanner();
+  </script>
+</body>
+</html>
