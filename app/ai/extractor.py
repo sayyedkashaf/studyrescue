@@ -10,6 +10,15 @@ from app.models import ImportBatch, Message, ExtractionRun, Candidate
 from app.dates.resolver import resolve_deadline
 
 
+def _sanitize_text(text: str) -> str:
+    """Strip null bytes and control characters from message text before sending to the LLM."""
+    if not text:
+        return text
+    text = text.replace('\x00', '')
+    text = ''.join(ch for ch in text if ch in ('\n', '\r', '\t') or ord(ch) >= 32)
+    return text.strip()
+
+
 def extract_batch(db, user_id: int, batch_id: int) -> ExtractionRun:
     start = time.time()
 
@@ -101,7 +110,7 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
         chunk_payload.append({
             'id': m.id,
             'timestamp': m.sent_at.isoformat() if m.sent_at else None,
-            'text': m.text,
+            'text': _sanitize_text(m.text),
         })
     user_prompt = json.dumps(chunk_payload)
     try:
@@ -130,13 +139,19 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
         try:
             response_text2 = complete_json(prompts.SYSTEM_PROMPT + '\n' + repair_prompt, user_prompt)
             data = _clean_and_parse_json(response_text2)
-        except Exception:
+        except Exception as e:
+            run.status = 'failed'
+            run.error_message = f'Failed to parse LLM response as JSON: {e}'
+            db.commit()
             chunk_failed = True
             return (hallucination_count, chunk_failed)
 
     try:
         valid_candidates, hallucination_count = _validate_with_hallucination_count(data, chunk)
-    except Exception:
+    except Exception as e:
+        run.status = 'failed'
+        run.error_message = f'Validation failed: {e}'
+        db.commit()
         chunk_failed = True
         return (hallucination_count, chunk_failed)
 
@@ -200,7 +215,7 @@ def extract_from_messages(messages) -> list[dict]:
             chunk_payload.append({
                 'id': m.id,
                 'timestamp': m.sent_at.isoformat() if m.sent_at else None,
-                'text': m.text,
+                'text': _sanitize_text(m.text),
             })
         user_prompt = json.dumps(chunk_payload)
         try:

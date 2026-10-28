@@ -256,7 +256,11 @@ def extract_tasks_endpoint(
                 error="Extraction is already in progress. Please wait a few minutes.",
                 status_code=status.HTTP_409_CONFLICT,
             )
-        # Stale – reset and allow re-run
+        # Stale – mark the old run as failed and reset batch status to allow re-run
+        if latest_run:
+            latest_run.status = 'failed'
+            latest_run.error_message = 'Extraction run timed out / was stuck on extracting; reset by user retry.'
+            db.add(latest_run)
         batch.status = 'failed'
         db.commit()
 
@@ -314,6 +318,15 @@ def extract_tasks_endpoint(
         db.refresh(batch)
         if batch.status == 'extracting':
             batch.status = 'failed'
+            # Also mark the latest run as failed so it isn't left dangling
+            latest_run = db.query(ExtractionRun).filter(
+                ExtractionRun.batch_id == batch_id,
+                ExtractionRun.user_id == current_user.id,
+            ).order_by(ExtractionRun.created_at.desc()).first()
+            if latest_run:
+                latest_run.status = 'failed'
+                latest_run.error_message = 'Extraction run did not complete; status reset to failed.'
+                db.add(latest_run)
             db.commit()
 
 

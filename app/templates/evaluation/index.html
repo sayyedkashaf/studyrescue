@@ -11,6 +11,18 @@
     <tr><td>gemini</td><td>{{ results.gemini.precision }}</td><td>{{ results.gemini.recall }}</td><td>{{ results.gemini.f1 }}</td></tr>
   </tbody>
 </table>
+{% elif baseline_metrics %}
+<h3>Evaluation (baseline from labeled dataset)</h3>
+<table>
+  <thead>
+    <tr><th>Model</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>keyword</td><td>{{ "%.4f"|format(baseline_metrics.keyword.precision) }}</td><td>{{ "%.4f"|format(baseline_metrics.keyword.recall) }}</td><td>{{ "%.4f"|format(baseline_metrics.keyword.f1) }}</td></tr>
+    <tr><td>tfidf</td><td>{{ "%.4f"|format(baseline_metrics.tfidf.precision) }}</td><td>{{ "%.4f"|format(baseline_metrics.tfidf.recall) }}</td><td>{{ "%.4f"|format(baseline_metrics.tfidf.f1) }}</td></tr>
+  </tbody>
+</table>
+<p><em>No extraction runs yet. Run <code>python -m eval.run_eval</code> to generate a full evaluation report.</em></p>
 {% else %}
 <p>No evaluation report yet</p>
 {% endif %}

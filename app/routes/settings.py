@@ -25,7 +25,16 @@ def settings_page(
     db: Session = Depends(get_db),
 ):
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings:
+        settings = UserSettings(user_id=current_user.id)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
     free_hours = settings.free_hours_per_day if settings else None
+    success = None
+    saved = request.query_params.get("saved")
+    if saved:
+        success = "Settings saved successfully."
     return templates.TemplateResponse(
         request=request,
         name="settings/index.html",
@@ -37,6 +46,7 @@ def settings_page(
             "free_hours_per_day": free_hours,
             "csrf_token": generate_csrf_token(),
             "error": None,
+            "success": success,
         },
     )
 
@@ -89,7 +99,7 @@ def settings_update(
         db.add(settings)
     settings.free_hours_per_day = hours
     db.commit()
-    return RedirectResponse(url="/settings", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url="/settings?saved=1", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.get("/delete-data", response_class=HTMLResponse)

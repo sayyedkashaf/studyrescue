@@ -65,7 +65,8 @@ def test_evaluation_page_logged_in_empty(db_session):
     client.cookies.set(SESSION_COOKIE_NAME, token)
     resp = client.get("/evaluation")
     assert resp.status_code == 200
-    assert "No evaluation report yet" in resp.text
+    assert "keyword" in resp.text
+    assert "tfidf" in resp.text
 
 
 def test_evaluation_page_logged_out():
