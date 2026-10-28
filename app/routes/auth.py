@@ -7,7 +7,7 @@ Authentication routes:
 
 import re
 from fastapi import APIRouter, Depends, Request, Form, Response, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -35,9 +35,9 @@ templates = Jinja2Templates(directory=str(_templates_dir))
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
-def _set_session_cookie(redirect: RedirectResponse, session_token: str) -> RedirectResponse:
-    """Set a production-ready session cookie on a redirect response."""
-    redirect.set_cookie(
+def _set_session_cookie(response: Response, session_token: str) -> Response:
+    """Set a production-ready session cookie on a response."""
+    response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=session_token,
         max_age=SESSION_MAX_AGE_SECONDS,
@@ -47,7 +47,7 @@ def _set_session_cookie(redirect: RedirectResponse, session_token: str) -> Redir
         domain=SESSION_COOKIE_DOMAIN,
         path="/",
     )
-    return redirect
+    return response
 
 
 def _clear_session_cookie(redirect: RedirectResponse) -> RedirectResponse:
@@ -163,6 +163,23 @@ def post_signup(
 
     # Issue session cookie and redirect
     session_token = create_session_token(user.id)
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept:
+        resp = JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={
+                "message": "Signup successful",
+                "token": session_token,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "display_name": user.display_name,
+                },
+            },
+        )
+        _set_session_cookie(resp, session_token)
+        return resp
+
     redirect = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     _set_session_cookie(redirect, session_token)
     return redirect
@@ -230,6 +247,23 @@ def post_login(
 
     # Success: set session cookie and redirect to dashboard
     session_token = create_session_token(user.id)
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept:
+        resp = JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "Login successful",
+                "token": session_token,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "display_name": user.display_name,
+                },
+            },
+        )
+        _set_session_cookie(resp, session_token)
+        return resp
+
     redirect = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     _set_session_cookie(redirect, session_token)
     return redirect

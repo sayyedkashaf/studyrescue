@@ -15,14 +15,23 @@ def get_current_user_optional(
     db: Session = Depends(get_db),
 ) -> User | None:
     """
-    Returns the currently logged-in User if the session cookie is valid,
-    or None if the user is unauthenticated.
+    Returns the currently logged-in User if the session cookie or
+    Authorization: Bearer <token> header is valid, or None if unauthenticated.
     """
-    session_cookie = request.cookies.get(SESSION_COOKIE_NAME)
-    if not session_cookie:
+    token = None
+    # 1. Check Authorization Bearer header
+    auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+
+    # 2. Check session cookie fallback
+    if not token:
+        token = request.cookies.get(SESSION_COOKIE_NAME)
+
+    if not token:
         return None
 
-    user_id = decode_session_token(session_cookie)
+    user_id = decode_session_token(token)
     if user_id is None:
         return None
 

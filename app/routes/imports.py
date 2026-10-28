@@ -236,7 +236,8 @@ def extract_tasks_endpoint(
     from app.ai.llm_client import LLMUnavailableError
     from app.services import candidate_service
 
-    batch = batch_service.get_batch(db, current_user.id, batch_id)
+    user_id = getattr(current_user, "id", None) or getattr(current_user, "_id", None)
+    batch = batch_service.get_batch(db, user_id, batch_id)
     if not batch:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Import not found")
 
@@ -246,7 +247,7 @@ def extract_tasks_endpoint(
     if batch.status == 'extracting':
         latest_run = db.query(ExtractionRun).filter(
             ExtractionRun.batch_id == batch_id,
-            ExtractionRun.user_id == current_user.id,
+            ExtractionRun.user_id == user_id,
         ).order_by(ExtractionRun.created_at.desc()).first()
         stale_cutoff = _dt.utcnow() - timedelta(minutes=5)
         if latest_run and latest_run.created_at and latest_run.created_at > stale_cutoff:
@@ -269,10 +270,10 @@ def extract_tasks_endpoint(
         batch.status = 'extracting'
         db.commit()
 
-        run = extractor.extract_batch(db, current_user.id, batch_id)
+        run = extractor.extract_batch(db, user_id, batch_id)
 
         # Count results
-        candidates = candidate_service.list_candidates(db, current_user.id)
+        candidates = candidate_service.list_candidates(db, user_id)
         run_candidates = [c for c in candidates if c.run_id == run.id]
 
         candidates_found = len(run_candidates)
@@ -321,7 +322,7 @@ def extract_tasks_endpoint(
             # Also mark the latest run as failed so it isn't left dangling
             latest_run = db.query(ExtractionRun).filter(
                 ExtractionRun.batch_id == batch_id,
-                ExtractionRun.user_id == current_user.id,
+                ExtractionRun.user_id == user_id,
             ).order_by(ExtractionRun.created_at.desc()).first()
             if latest_run:
                 latest_run.status = 'failed'

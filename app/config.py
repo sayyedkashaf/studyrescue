@@ -11,16 +11,13 @@ _project_root = Path(__file__).resolve().parent.parent
 load_dotenv(_project_root / ".env")
 
 APP_NAME: str = os.getenv("APP_NAME", "Study Rescue")
-SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+SECRET_KEY: str = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET") or "studyrescue-default-secret-key-at-least-32-chars"
 ENV: str = os.getenv("ENV", "development")
 DEBUG: bool = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
 
 INVITE_CODE: str = os.getenv("INVITE_CODE", "")
 EXTRACTION_RATE_LIMIT: int = int(os.getenv("EXTRACTION_RATE_LIMIT", "20"))
 MAX_UPLOAD_KB: int = int(os.getenv("MAX_UPLOAD_KB", "200"))
-
-if ENV == "production" and not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY missing in production")
 
 DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
@@ -30,8 +27,13 @@ DATABASE_URL: str = os.getenv(
 # ── Session / Cookie configuration ─────────────────────────────────────
 SESSION_COOKIE_NAME: str = os.getenv("SESSION_COOKIE_NAME", "studyrescue_session")
 SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", None) or None
-SESSION_COOKIE_SECURE: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() in ("true", "1", "yes")
-SESSION_COOKIE_SAMESITE: str = os.getenv("SESSION_COOKIE_SAMESITE", "lax")  # lax | none | strict
+_is_prod = ENV == "production" or bool(os.getenv("RENDER"))
+SESSION_COOKIE_SECURE: bool = os.getenv(
+    "SESSION_COOKIE_SECURE", "true" if _is_prod else "false"
+).lower() in ("true", "1", "yes")
+SESSION_COOKIE_SAMESITE: str = os.getenv(
+    "SESSION_COOKIE_SAMESITE", "none" if _is_prod else "lax"
+)  # lax | none | strict
 SESSION_MAX_AGE_SECONDS: int = int(os.getenv("SESSION_MAX_AGE_SECONDS", str(60 * 60 * 24 * 14)))
 CSRF_MAX_AGE_SECONDS: int = int(os.getenv("CSRF_MAX_AGE_SECONDS", str(60 * 60 * 2)))
 

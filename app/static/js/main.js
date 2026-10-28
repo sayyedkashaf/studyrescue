@@ -132,13 +132,50 @@
     }
   }
 
-  // ── Global AJAX error handler (fetch) ──────────────────────────────
+  // ── Auth Token Helpers ─────────────────────────────────────────────
+  window.setAuthToken = function (token) {
+    if (token) {
+      localStorage.setItem('studyrescue-token', token);
+      localStorage.setItem('token', token);
+    }
+  };
+
+  window.getAuthToken = function () {
+    return localStorage.getItem('studyrescue-token') || localStorage.getItem('token') || '';
+  };
+
+  window.clearAuthToken = function () {
+    localStorage.removeItem('studyrescue-token');
+    localStorage.removeItem('token');
+  };
+
+  // ── Global AJAX error handler & Bearer Token Interceptor (fetch) ───
   const originalFetch = window.fetch;
-  window.fetch = function (input, init) {
-    return originalFetch(input, init).catch(function (err) {
-      showToast('Network error: unable to reach the server. Please check your connection.', 'error', 8000);
-      throw err;
-    });
+  window.fetch = function (input, init = {}) {
+    init = Object.assign({}, init);
+    const headers = init.headers ? new Headers(init.headers) : new Headers();
+    const token = window.getAuthToken();
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    init.headers = headers;
+    if (!init.credentials) {
+      init.credentials = 'include';
+    }
+
+    return originalFetch(input, init)
+      .then(function (res) {
+        // Backup token extraction if server returns token header or JSON
+        const authHeader = res.headers.get('Authorization') || res.headers.get('X-Session-Token');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          window.setAuthToken(authHeader.slice(7));
+        }
+        return res;
+      })
+      .catch(function (err) {
+        showToast('Network error: unable to reach the server. Please check your connection.', 'error', 8000);
+        throw err;
+      });
   };
 
 })();

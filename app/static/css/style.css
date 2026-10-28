@@ -493,14 +493,14 @@ textarea.form-control {
 }
 
 .filter-link:hover {
-  background-color: #f1f5f9;
+  background-color: #1f2937;
   color: var(--text-main);
 }
 
 .filter-link.active {
   background-color: var(--accent-light);
   color: var(--accent);
-  border-color: #bfdbfe;
+  border-color: rgba(99, 102, 241, 0.35);
   font-weight: 600;
 }
 
@@ -524,7 +524,7 @@ textarea.form-control {
 }
 
 .task-card:hover {
-  border-color: #cbd5e1;
+  border-color: #374151;
 }
 
 .task-card.is-overdue {
@@ -568,8 +568,8 @@ textarea.form-control {
 
 .task-description {
   font-size: 0.9rem;
-  color: #334155;
-  background-color: #f8fafc;
+  color: var(--text-muted);
+  background-color: rgba(31, 41, 55, 0.4);
   padding: 0.6rem 0.85rem;
   border-radius: 4px;
   border-left: 2px solid var(--border-color);
@@ -581,7 +581,7 @@ textarea.form-control {
   align-items: center;
   flex-wrap: wrap;
   padding-top: 0.5rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
 }
 
 .task-actions form {

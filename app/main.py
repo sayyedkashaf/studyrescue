@@ -48,8 +48,15 @@ app = FastAPI(
 
 # ── CORS middleware (production cross-origin support) ────────────────
 
-if CORS_ENABLED:
-    _allow_origins = CORS_ALLOW_ORIGINS or [FRONTEND_URL] if FRONTEND_URL else ["*"]
+# Always enable CORS if explicitly set, or auto-enable in production
+_enable_cors = CORS_ENABLED or (ENV == "production")
+if _enable_cors:
+    if CORS_ALLOW_ORIGINS:
+        _allow_origins = CORS_ALLOW_ORIGINS
+    elif FRONTEND_URL:
+        _allow_origins = [FRONTEND_URL]
+    else:
+        _allow_origins = ["*"]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_allow_origins,
@@ -86,66 +93,8 @@ def get_root(request: Request, current_user: User | None = Depends(get_current_u
     return RedirectResponse(url="/auth/login", status_code=303)
 
 
-# ── Protected Dashboard Route ────────────────────────────────────────
-
-@app.get("/dashboard", response_class=HTMLResponse)
-def get_dashboard(request: Request, current_user: User = Depends(get_current_user)):
-    """
-    Dashboard route – renders welcome card and quick navigation.
-    Full analytics and metrics built in Phase 9.
-    """
-    csrf_token = generate_csrf_token()
-    return HTMLResponse(
-        content=f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <title>Dashboard – {APP_NAME}</title>
-          <link rel="stylesheet" href="/static/css/style.css">
-          <link rel="stylesheet" href="/static/css/globals.css">
-        </head>
-        <body>
-          <div class="app-layout">
-            <aside class="sidebar" aria-label="Main Navigation">
-              <div class="sidebar-header">
-                <a href="/dashboard" class="sidebar-brand">
-                  {APP_NAME}
-                  <span>University Workload</span>
-                </a>
-              </div>
-              <ul class="sidebar-nav">
-                <li><a href="/dashboard" class="active">Dashboard</a></li>
-                <li><a href="/tasks">Tasks</a></li>
-                <li><a href="/imports">Imports</a></li>
-                <li><a href="/settings">Settings</a></li>
-                <li><a href="/evaluation">Evaluation</a></li>
-              </ul>
-              <div class="sidebar-footer">
-                <div class="user-info">
-                  {current_user.display_name}
-                  <span class="user-email">{current_user.email}</span>
-                </div>
-                <form method="post" action="/auth/logout">
-                  <input type="hidden" name="csrf_token" value="{csrf_token}">
-                  <button type="submit" id="logout-btn">Log out</button>
-                </form>
-              </div>
-            </aside>
-            <main class="main-content" id="main-content">
-              <h1>Dashboard</h1>
-              <p>Welcome back, <strong id="user-display-name">{current_user.display_name}</strong>.</p>
-              <div class="card" style="margin-top: 1.5rem;">
-                <h2 class="card-title">Quick Actions</h2>
-                <p style="margin-bottom: 1rem;">View and manage your tasks, track deadlines, and log hours.</p>
-                <a href="/tasks" class="btn btn-primary">Go to Tasks &rarr;</a>
-              </div>
-            </main>
-          </div>
-        </body>
-        </html>
-        """
-    )
+# NOTE: The /dashboard route is handled by dashboard_router (routes/dashboard.py)
+# which uses the proper base.html template with dark theme and sidebar.
 
 
 # ── Health route ─────────────────────────────────────────────────────
