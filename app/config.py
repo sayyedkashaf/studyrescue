@@ -27,12 +27,30 @@ DATABASE_URL: str = os.getenv(
     f"sqlite:///{_project_root / 'data' / 'studyrescue.db'}",
 )
 
-LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai")
-LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
+# ── Session / Cookie configuration ─────────────────────────────────────
+SESSION_COOKIE_NAME: str = os.getenv("SESSION_COOKIE_NAME", "studyrescue_session")
+SESSION_COOKIE_DOMAIN: str | None = os.getenv("SESSION_COOKIE_DOMAIN", None) or None
+SESSION_COOKIE_SECURE: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() in ("true", "1", "yes")
+SESSION_COOKIE_SAMESITE: str = os.getenv("SESSION_COOKIE_SAMESITE", "lax")  # lax | none | strict
+SESSION_MAX_AGE_SECONDS: int = int(os.getenv("SESSION_MAX_AGE_SECONDS", str(60 * 60 * 24 * 14)))
+CSRF_MAX_AGE_SECONDS: int = int(os.getenv("CSRF_MAX_AGE_SECONDS", str(60 * 60 * 2)))
+
+# ── CORS / Cross-origin configuration ──────────────────────────────────
+CORS_ENABLED: bool = os.getenv("CORS_ENABLED", "false").lower() in ("true", "1", "yes")
+CORS_ALLOW_ORIGINS: list[str] = [
+    o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if o.strip()
+]
+CORS_ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() in ("true", "1", "yes")
+FRONTEND_URL: str | None = os.getenv("FRONTEND_URL", None) or None
+
+# ── LLM configuration ──────────────────────────────────────────────────
+LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini")
+LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
 LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", LLM_MODEL)
 DEMO_PASSWORD: str = os.getenv("DEMO_PASSWORD", "")
 
+# ── Server ─────────────────────────────────────────────────────────────
 HOST: str = os.getenv("HOST", "127.0.0.1")
 PORT: int = int(os.getenv("PORT", "8000"))

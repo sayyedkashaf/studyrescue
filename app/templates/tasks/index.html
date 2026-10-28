@@ -1,272 +1,282 @@
 {% extends "base.html" %}
 
-{% block title %}Tasks – {{ app_name }}{% endblock %}
+{% block page_title %}Tasks{% endblock %}
 
-{% block content %}
-<div class="tasks-page">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+{% block page_content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h1>Tasks</h1>
-      <p>Manage your academic commitments, track actual effort, and monitor deadlines.</p>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Tasks</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Manage your academic commitments and track deadlines.</p>
     </div>
+    <a href="#add-task-card" class="sr-btn sr-btn-primary px-5 py-2.5 text-sm">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+      New Task
+    </a>
   </div>
 
-  <!-- Planning Overrun & Workload Banner -->
-  <div class="overrun-banner card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-left: 4px solid #3b82f6;">
-    <div>
-      <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-muted, #64748b); display: block;">Overrun Multiplier</span>
-      {% if (insufficient_data is not defined) or insufficient_data or (overrun_factor is not defined) or (overrun_factor is none) %}
-      <span id="overrun-factor-text" style="font-size: 1.15rem; font-weight: 600; color: #475569;">Not enough data yet</span>
-      {% if overrun_samples is defined and overrun_min_samples is defined %}
-      <span style="font-size: 0.85rem; color: #64748b; margin-left: 0.35rem;">({{ overrun_samples }}/{{ overrun_min_samples }} completed tasks with estimates)</span>
-      {% endif %}
-      {% else %}
-      <span id="overrun-factor-text" style="font-size: 1.15rem; font-weight: 600; color: #0f172a;">{{ "%.2f"|format(overrun_factor) }}x</span>
+  {% if error %}
+  <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-100" role="alert">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  {% if success %}
+  <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100" role="alert">
+    {{ success }}
+  </div>
+  {% endif %}
+
+  <!-- Overrun & Workload Banner -->
+  <div class="sr-card p-5 border-l-4 border-blue-500">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center dark:bg-indigo-900/20 dark:text-indigo-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Overrun Multiplier</p>
+          <p class="text-xl font-bold text-gray-900 dark:text-white" id="overrun-factor-text">
+            {% if (insufficient_data is not defined) or insufficient_data or (overrun_factor is not defined) or (overrun_factor is none) %}
+            Not enough data yet
+            {% else %}
+            {{ "%.2f"|format(overrun_factor) }}x
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
       {% if overrun_samples is defined %}
-      <span style="font-size: 0.85rem; color: #64748b; margin-left: 0.35rem;">(based on {{ overrun_samples }} completed tasks)</span>
+      <div class="text-xs text-gray-500 dark:text-gray-400">
+        Based on {{ overrun_samples }} completed task{{ 's' if overrun_samples != 1 }}
+        {% if overrun_min_samples is defined %}
+        ({{ overrun_min_samples }} needed)
+        {% endif %}
+      </div>
       {% endif %}
+
+      {% if suggestions is defined and suggestions %}
+      <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-md text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-100 w-full md:w-auto">
+        {% for s in suggestions %}
+        <p class="mb-1 last:mb-0">{{ s }}</p>
+        {% endfor %}
+      </div>
       {% endif %}
     </div>
-    {% if suggestions is defined and suggestions %}
-    <div class="alert alert-warning" id="workload-suggestion" style="margin: 0; padding: 0.6rem 1rem; font-size: 0.88rem; flex: 1; min-width: 280px; border-radius: 6px;">
-      {% for s in suggestions %}
-      <p style="margin: 0;">{{ s }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
   </div>
 
-  <!-- Manual Add Task Card -->
-  <div class="card" id="add-task-card">
-    <h2 class="card-title">Add a Task Manually</h2>
-    {% if error %}
-    <div class="alert alert-error" role="alert">{{ error }}</div>
-    {% endif %}
-    {% if success %}
-    <div class="alert alert-success" role="alert">{{ success }}</div>
-    {% endif %}
-
-    <form method="post" action="/tasks">
+  <!-- Add Task Card -->
+  <div id="add-task-card" class="sr-card p-5">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-bold text-gray-900 dark:text-white">Add a Task Manually</h2>
+    </div>
+    <form method="post" action="/tasks" class="space-y-4">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-      <div class="form-row">
-        <div class="form-group" style="flex: 2;">
-          <label for="task-title">Title *</label>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label class="sr-label">Title <span class="text-rose-500">*</span></label>
           <input
             type="text"
             id="task-title"
             name="title"
-            class="form-control"
+            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
             placeholder="e.g. Linear Algebra Assignment 2"
             value="{{ form_data.title or '' }}"
             required
           >
         </div>
-        <div class="form-group">
-          <label for="task-subject">Subject</label>
+        <div class="space-y-2">
+          <label class="sr-label">Subject</label>
           <input
             type="text"
             id="task-subject"
             name="subject"
-            class="form-control"
+            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
             placeholder="e.g. Maths, CS101"
             value="{{ form_data.subject or '' }}"
           >
         </div>
-        <div class="form-group">
-          <label for="task-kind">Kind</label>
-          <select id="task-kind" name="kind" class="form-control">
+        <div class="space-y-2">
+          <label class="sr-label">Kind</label>
+          <select id="task-kind" name="kind" class="sr-select focus:ring-2 focus:ring-indigo-500/50">
             <option value="assignment" {% if form_data.kind == 'assignment' %}selected{% endif %}>Assignment</option>
             <option value="exam" {% if form_data.kind == 'exam' %}selected{% endif %}>Exam</option>
             <option value="submission" {% if form_data.kind == 'submission' %}selected{% endif %}>Submission</option>
             <option value="other" {% if form_data.kind == 'other' %}selected{% endif %}>Other</option>
           </select>
         </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="task-deadline">Deadline</label>
+        <div class="space-y-2">
+          <label class="sr-label">Deadline</label>
           <input
             type="date"
             id="task-deadline"
             name="deadline"
-            class="form-control"
+            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
             value="{{ form_data.deadline or '' }}"
           >
         </div>
-        <div class="form-group">
-          <label for="task-est-hours">Estimated Hours</label>
+        <div class="space-y-2">
+          <label class="sr-label">Estimated Hours</label>
           <input
             type="number"
             step="0.5"
             min="0"
             id="task-est-hours"
             name="estimated_hours"
-            class="form-control"
+            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
             placeholder="e.g. 4.0"
             value="{{ form_data.estimated_hours or '' }}"
           >
         </div>
-        <div class="form-group" style="flex: 2;">
-          <label for="task-description">Notes / Description</label>
+        <div class="space-y-2 md:col-span-2">
+          <label class="sr-label">Notes / Description</label>
           <input
             type="text"
             id="task-description"
             name="description"
-            class="form-control"
+            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
             placeholder="Optional details or instructions"
             value="{{ form_data.description or '' }}"
           >
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary" id="create-task-submit">Create Task</button>
+      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold w-auto">
+        Create Task
+      </button>
     </form>
   </div>
 
-  <!-- Filters Bar -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 0.25rem;">Status:</span>
-      <a href="/tasks?status=all{% if current_subject %}&subject={{ current_subject }}{% endif %}"
-         class="filter-link {% if current_status == 'all' or not current_status %}active{% endif %}">All</a>
-      <a href="/tasks?status=open{% if current_subject %}&subject={{ current_subject }}{% endif %}"
-         class="filter-link {% if current_status == 'open' %}active{% endif %}">Open</a>
-      <a href="/tasks?status=overdue{% if current_subject %}&subject={{ current_subject }}{% endif %}"
-         class="filter-link {% if current_status == 'overdue' %}active{% endif %}">Overdue</a>
-      <a href="/tasks?status=completed{% if current_subject %}&subject={{ current_subject }}{% endif %}"
-         class="filter-link {% if current_status == 'completed' %}active{% endif %}">Completed</a>
+  <!-- Filters -->
+  <div class="sr-filter-bar">
+    <div class="flex flex-wrap gap-2">
+      <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider self-center">Status:</span>
+      <a href="/tasks?status=all{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'all' or not current_status %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">All</a>
+      <a href="/tasks?status=open{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'open' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">Open</a>
+      <a href="/tasks?status=overdue{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'overdue' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">Overdue</a>
+      <a href="/tasks?status=completed{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'completed' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">Completed</a>
     </div>
 
-    <!-- Subject Filter -->
-    <div class="filter-group">
-      <label for="subject-select" style="margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Subject:</label>
-      <select id="subject-select" class="form-control" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.85rem;" onchange="window.location.href=this.value">
+    <div class="flex items-center gap-3 flex-wrap">
+      <label class="sr-label text-xs">Subject:</label>
+      <select id="subject-select" class="sr-select text-sm focus:ring-2 focus:ring-indigo-500/50" onchange="window.location.href=this.value" style="width: auto;">
         <option value="/tasks?status={{ current_status or 'all' }}">All Subjects</option>
         {% for s in user_subjects %}
         <option value="/tasks?status={{ current_status or 'all' }}&subject={{ s }}" {% if current_subject == s %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
       </select>
       {% if current_subject or (current_status and current_status != 'all') %}
-      <a href="/tasks" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">Reset</a>
+      <a href="/tasks" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs">Reset</a>
       {% endif %}
     </div>
   </div>
 
   <!-- Tasks List -->
   {% if tasks %}
-  <div class="task-list">
+  <div class="task-list space-y-3">
     {% for task in tasks %}
-    <div class="task-card {% if task.is_overdue %}is-overdue{% endif %} {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
-      <div class="task-header">
-        <div>
-          <span class="task-title">{{ task.title }}</span>
-          <div class="task-badges" style="margin-top: 0.35rem;">
+    <div class="sr-task-card {% if task.is_overdue %}is-overdue{% endif %} {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="task-title font-bold text-gray-900 dark:text-white text-base leading-tight">{{ task.title }}</h3>
             {% if task.subject %}
-            <span class="badge badge-subject">{{ task.subject }}</span>
+            <span class="sr-badge bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-xs px-2 py-0.5">{{ task.subject }}</span>
             {% endif %}
-            <span class="badge badge-{{ task.status }}">{{ task.status | replace('_', ' ') }}</span>
+            <span class="sr-badge sr-badge-{{ task.status }} text-xs px-2 py-0.5">{{ task.status | replace('_', ' ') }}</span>
             {% if task.is_overdue %}
-            <span class="badge badge-overdue">Overdue</span>
+            <span class="sr-badge sr-badge-overdue text-xs px-2 py-0.5">Overdue</span>
             {% endif %}
             {% if task.kind %}
-            <span class="badge badge-pending">{{ task.kind }}</span>
+            <span class="sr-badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400 text-xs px-2 py-0.5">{{ task.kind }}</span>
             {% endif %}
             {% if task.risk %}
-            <span class="badge badge-risk badge-risk-{{ task.risk }}" id="risk-badge-{{ task.id }}" style="font-weight: 600;">Risk: {{ task.risk | capitalize }}</span>
+            <span class="sr-badge text-xs px-2 py-0.5 {% if task.risk == 'overdue' %}bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400{% elif task.risk == 'infeasible' %}bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400{% elif task.risk == 'tight' %}bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400{% else %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400{% endif %}">Risk: {{ task.risk | capitalize }}</span>
             {% endif %}
           </div>
+
+          {% if task.feasibility_sentence %}
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-medium">{{ task.feasibility_sentence }}</p>
+          {% endif %}
+          {% if task.feasibility_note %}
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3 italic">{{ task.feasibility_note }}</p>
+          {% endif %}
+
+          <div class="flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-400 mb-3">
+            {% if task.deadline %}
+            <span><span class="font-medium text-gray-900 dark:text-white">Deadline:</span> {{ task.deadline.strftime('%d %b %Y') }}</span>
+            {% else %}
+            <span><span class="font-medium text-gray-900 dark:text-white">Deadline:</span> <em>None</em></span>
+            {% endif %}
+            {% if task.estimated_hours is not none %}
+            <span><span class="font-medium text-gray-900 dark:text-white">Estimate:</span> {{ "%.1f"|format(task.estimated_hours) }} hrs</span>
+            {% endif %}
+            {% if task.actual_hours is not none %}
+            <span><span class="font-medium text-gray-900 dark:text-white">Actual:</span> {{ "%.1f"|format(task.actual_hours) }} hrs</span>
+            {% endif %}
+            <span><span class="font-medium text-gray-900 dark:text-white">Source:</span> {{ task.source }}</span>
+          </div>
+
+          {% if task.description %}
+          <div class="bg-gray-50/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700 rounded-md p-3 text-sm text-gray-700 dark:text-gray-300 mb-3">{{ task.description }}</div>
+          {% endif %}
+
+          <div class="task-actions flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <!-- Start -->
+            {% if task.status == 'pending' %}
+            <form method="post" action="/tasks/{{ task.id }}/start" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Start</button>
+            </form>
+            {% endif %}
+
+            <!-- Complete -->
+            {% if task.status in ['pending', 'in_progress'] %}
+            <form method="post" action="/tasks/{{ task.id }}/complete" class="flex items-center gap-2 inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                name="actual_hours"
+                placeholder="hrs"
+                class="sr-input text-xs w-20 focus:ring-0"
+                value="{% if task.estimated_hours %}{{ task.estimated_hours }}{% endif %}"
+              >
+              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Complete</button>
+            </form>
+            {% endif %}
+
+            <!-- Edit -->
+            <a href="/tasks/{{ task.id }}/edit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
+
+            <!-- Cancel -->
+            {% if task.status in ['pending', 'in_progress'] %}
+            <form method="post" action="/tasks/{{ task.id }}/cancel" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+            </form>
+            {% endif %}
+
+            <!-- Delete -->
+            <a href="/tasks/{{ task.id }}/delete" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-800">Delete</a>
+          </div>
         </div>
-      </div>
-
-      {% if task.feasibility_sentence %}
-      <div class="feasibility-sentence" style="font-size: 0.88rem; color: #334155; margin: 0.35rem 0 0.25rem 0; font-weight: 500;">
-        {{ task.feasibility_sentence }}
-      </div>
-      {% endif %}
-
-      {% if task.feasibility_note %}
-      <div class="feasibility-note" style="font-size: 0.85rem; color: #64748b; font-style: italic; margin: 0.25rem 0;">
-        {{ task.feasibility_note }}
-      </div>
-      {% endif %}
-
-      <div class="task-meta">
-        {% if task.deadline %}
-        <span>Deadline: <strong>{{ task.deadline.strftime('%d %b %Y') }}</strong></span>
-        {% else %}
-        <span>Deadline: <em>None</em></span>
-        {% endif %}
-
-        {% if task.estimated_hours is not none %}
-        <span>Estimate: <strong>{{ "%.1f"|format(task.estimated_hours) }} hrs</strong></span>
-        {% endif %}
-
-        {% if task.actual_hours is not none %}
-        <span>Actual: <strong>{{ "%.1f"|format(task.actual_hours) }} hrs</strong></span>
-        {% endif %}
-
-        <span>Source: {{ task.source }}</span>
-      </div>
-
-      {% if task.description %}
-      <div class="task-description">{{ task.description }}</div>
-      {% endif %}
-
-      <div class="task-actions">
-        <!-- Start Action -->
-        {% if task.status == 'pending' %}
-        <form method="post" action="/tasks/{{ task.id }}/start">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="btn btn-secondary btn-sm" id="start-btn-{{ task.id }}">Start</button>
-        </form>
-        {% endif %}
-
-        <!-- Complete Action (with optional actual hours input) -->
-        {% if task.status in ['pending', 'in_progress'] %}
-        <form method="post" action="/tasks/{{ task.id }}/complete" class="complete-form-inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <input
-            type="number"
-            step="0.5"
-            min="0"
-            name="actual_hours"
-            placeholder="hrs"
-            title="Actual hours spent"
-            aria-label="Actual hours spent"
-            value="{% if task.estimated_hours %}{{ task.estimated_hours }}{% endif %}"
-          >
-          <button type="submit" class="btn btn-secondary btn-sm" id="complete-btn-{{ task.id }}">Complete</button>
-        </form>
-        {% endif %}
-
-        <!-- Edit Link -->
-        <a href="/tasks/{{ task.id }}/edit" class="btn btn-secondary btn-sm" id="edit-btn-{{ task.id }}">Edit</a>
-
-        <!-- Cancel Action -->
-        {% if task.status in ['pending', 'in_progress'] %}
-        <form method="post" action="/tasks/{{ task.id }}/cancel">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="btn btn-secondary btn-sm" id="cancel-btn-{{ task.id }}">Cancel</button>
-        </form>
-        {% endif %}
-
-        <!-- Delete with Confirmation Step -->
-        <a href="/tasks/{{ task.id }}/delete" class="btn btn-secondary btn-sm" style="color: var(--error-text);" id="delete-link-{{ task.id }}">Delete</a>
       </div>
     </div>
     {% endfor %}
   </div>
 
   {% else %}
-  <div class="empty-state">
-    <h3>No tasks found</h3>
+  <div class="sr-empty-state">
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">No tasks found</h3>
     {% if current_status or current_subject %}
-    <p>No tasks matched your active filter.</p>
-    <a href="/tasks" class="btn btn-secondary btn-sm">Clear Filters</a>
+    <p class="text-gray-600 dark:text-gray-400 mb-3">No tasks matched your active filter.</p>
+    <a href="/tasks" class="sr-btn sr-btn-secondary px-5 py-2 text-sm">Clear Filters</a>
     {% else %}
-    <p>You have not added any tasks yet. Use the form above to add an assignment or exam.</p>
+    <p class="text-gray-600 dark:text-gray-400 mb-6">You haven't added any tasks yet. Use the form above to get started.</p>
     {% endif %}
   </div>
   {% endif %}

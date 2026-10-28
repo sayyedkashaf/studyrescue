@@ -1,26 +1,142 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h1>Welcome, {{ user.display_name }}</h1>
+{% block page_title %}Dashboard{% endblock %}
 
-{% if not has_tasks %}
-<p>Empty state: No tasks yet.</p>
-{% else %}
-<p>Open: {{ open_count }} | Completed: {{ completed_count }} | Overdue: {{ overdue_count }} | Due this week: {{ due_this_week_count }}</p>
+{% block page_content %}
+<div class="space-y-6">
+  <!-- Welcome Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Welcome back, {{ user.display_name }}</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Here's your workload overview for today.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleDarkMode()" class="sr-btn sr-btn-secondary px-3 py-2 text-sm" title="Toggle dark mode">
+        {% if 'dark' in '' %}
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 35.416V20a10 10 0 11-10 0v15.416M17.856 7.856a8 8 0 10-11.314 0 1 1 0 011.414 1.414 6 6 0 107.778 0 1 1 0 011.414-1.415z" /></svg>
+        {% else %}
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M5.555 15.555l.707-.707M19 12l-1 0m0 0l-1 0M4.618 4.618l.707-.707M12 21l1.414-1.414" /></svg>
+        {% endif %}
+      </button>
+    </div>
+  </div>
 
-<h2>Risk list</h2>
-{% if risk_message %}<p>{{ risk_message }}</p>{% endif %}
-<ul>
-{% for r in risk_list %}
-  <li>{{ r.title }} - {{ r.deadline }} - {{ r.status }} (needed: {{ r.needed }}, available: {{ r.available }}, slack: {{ r.slack }}) - {{ r.risk }} - {{ r.sentence }}</li>
-{% endfor %}
-</ul>
+  <!-- Stats Scorecards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="sr-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Open Tasks</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ open_count }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center dark:bg-blue-900/20 dark:text-blue-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+        </div>
+      </div>
+    </div>
 
-<h2>What to do next</h2>
-{% if what_to_do_next %}
-<p>Earliest deadline: {{ what_to_do_next.title }}{% if what_to_do_next.deadline %} - {{ what_to_do_next.deadline }}{% endif %}</p>
-{% else %}
-<p>No open tasks.</p>
-{% endif %}
-{% endif %}
+    <div class="sr-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Completed</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ completed_count }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center dark:bg-emerald-900/20 dark:text-emerald-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="sr-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Overdue</p>
+          <p class="text-2xl font-bold text-{% if overdue_count > 0 %}rose-600{% else %}emerald-600{% endif %} dark:{% if overdue_count > 0 %}text-rose-400{% else %}text-emerald-400{% endif %} mt-1">{{ overdue_count }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-{% if overdue_count > 0 %}rose-50{% else %}emerald-50{% endif %} text-{% if overdue_count > 0 %}rose-600{% else %}emerald-600{% endif %} flex items-center justify-center dark:bg-{% if overdue_count > 0 %}rose-900/20{% else %}emerald-900/20{% endif %} dark:text-{% if overdue_count > 0 %}rose-400{% else %}emerald-400{% endif %}">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="sr-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Due This Week</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ due_this_week_count }}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center dark:bg-amber-900/20 dark:text-amber-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if has_tasks %}
+  <!-- What to do next -->
+  <div class="sr-card p-5 border-l-4 border-indigo-500">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white">What to do next</h3>
+      <a href="/tasks" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">View all tasks →</a>
+    </div>
+    <div class="flex items-start gap-4">
+      <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 dark:bg-indigo-900/20 dark:text-indigo-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+      </div>
+      <div>
+        <h4 class="font-bold text-gray-900 dark:text-white mb-1">{{ what_to_do_next.title }}</h4>
+        {% if what_to_do_next.deadline %}
+        <p class="text-sm text-gray-600 dark:text-gray-400">Deadline: {{ what_to_do_next.deadline.strftime('%d %b %Y') }}</p>
+        {% endif %}
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This is your earliest upcoming deadline.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk List -->
+  {% if risk_list %}
+  <div class="sr-card p-5">
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Deadline Risk Overview</h3>
+    {% if risk_message %}<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ risk_message }}</p>{% endif %}
+    <div class="overflow-x-auto">
+      <table class="sr-table w-full text-sm">
+        <thead>
+          <tr class="text-left">
+            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Task</th>
+            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Deadline</th>
+            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Status</th>
+            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Risk</th>
+            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Needed vs Available</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in risk_list %}
+          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+            <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ r.title }}</td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ r.deadline }}</td>
+            <td class="px-4 py-3">
+              <span class="sr-badge sr-badge-{% if r.status == 'infeasible' %}overdue{% elif r.status == 'tight' %}warning{% else %}pending{% endif %} px-2 py-1">{{ r.status }}</span>
+            </td>
+            <td class="px-4 py-3 text-sm font-medium {% if 'Risk' in r.risk %}text-rose-600 dark:text-rose-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">{{ r.risk }}</td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ r.needed }}h / {{ r.available }}h</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="sr-empty-state">
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
+    <p class="text-gray-600 dark:text-gray-400 mb-6">Get started by importing your WhatsApp chats or adding a task manually.</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/imports" class="sr-btn sr-btn-primary px-6 py-2">Import Chat</a>
+      <a href="/tasks" class="sr-btn sr-btn-secondary px-6 py-2">Add Task</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

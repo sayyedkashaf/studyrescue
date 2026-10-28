@@ -10,15 +10,15 @@ import secrets
 import bcrypt
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
-from app.config import SECRET_KEY
+from app.config import SECRET_KEY, SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS, CSRF_MAX_AGE_SECONDS
 
 # Serializers for session cookies and CSRF tokens
 _session_serializer = URLSafeTimedSerializer(SECRET_KEY, salt="studyrescue-session")
 _csrf_serializer = URLSafeTimedSerializer(SECRET_KEY, salt="studyrescue-csrf")
 
-SESSION_COOKIE_NAME = "studyrescue_session"
-SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14  # 14 days
-CSRF_MAX_AGE_SECONDS = 60 * 60 * 2          # 2 hours
+SESSION_COOKIE_NAME = SESSION_COOKIE_NAME
+SESSION_MAX_AGE_SECONDS = SESSION_MAX_AGE_SECONDS
+CSRF_MAX_AGE_SECONDS = CSRF_MAX_AGE_SECONDS
 
 
 # ── Password Hashing ─────────────────────────────────────────────────

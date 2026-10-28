@@ -1,29 +1,96 @@
 {% extends "base.html" %}
-{% block content %}
-{% if results %}
-<table>
-  <thead>
-    <tr><th>Model</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>keyword</td><td>{{ results.keyword.precision }}</td><td>{{ results.keyword.recall }}</td><td>{{ results.keyword.f1 }}</td></tr>
-    <tr><td>tfidf</td><td>{{ results.tfidf.precision }}</td><td>{{ results.tfidf.recall }}</td><td>{{ results.tfidf.f1 }}</td></tr>
-    <tr><td>gemini</td><td>{{ results.gemini.precision }}</td><td>{{ results.gemini.recall }}</td><td>{{ results.gemini.f1 }}</td></tr>
-  </tbody>
-</table>
-{% elif baseline_metrics %}
-<h3>Evaluation (baseline from labeled dataset)</h3>
-<table>
-  <thead>
-    <tr><th>Model</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>keyword</td><td>{{ "%.4f"|format(baseline_metrics.keyword.precision) }}</td><td>{{ "%.4f"|format(baseline_metrics.keyword.recall) }}</td><td>{{ "%.4f"|format(baseline_metrics.keyword.f1) }}</td></tr>
-    <tr><td>tfidf</td><td>{{ "%.4f"|format(baseline_metrics.tfidf.precision) }}</td><td>{{ "%.4f"|format(baseline_metrics.tfidf.recall) }}</td><td>{{ "%.4f"|format(baseline_metrics.tfidf.f1) }}</td></tr>
-  </tbody>
-</table>
-<p><em>No extraction runs yet. Run <code>python -m eval.run_eval</code> to generate a full evaluation report.</em></p>
-{% else %}
-<p>No evaluation report yet</p>
-{% endif %}
+
+{% block page_title %}Evaluation{% endblock %}
+
+{% block page_content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Model Evaluation</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Compare baseline keyword and TF-IDF model performance on labeled data.</p>
+    </div>
+  </div>
+
+  {% if results %}
+  <!-- Extraction Results -->
+  <div class="sr-card p-6">
+    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-5">LLM Extraction Results</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {% for model in ['keyword', 'tfidf', 'gemini'] %}
+      <div class="sr-card p-5 text-center">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">{{ model }}</p>
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ "%.3f"|format(results[model].f1) }}</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">F1</span>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+            <span>Precision</span>
+            <span>{{ "%.3f"|format(results[model].precision) }}</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div class="bg-indigo-600 h-1.5 rounded-full" style="width: {{ (results[model].precision * 100)|round(1) }}%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+            <span>Recall</span>
+            <span>{{ "%.3f"|format(results[model].recall) }}</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div class="bg-indigo-600 h-1.5 rounded-full" style="width: {{ (results[model].recall * 100)|round(1) }}%"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% elif baseline_metrics %}
+  <!-- Baseline Fallback -->
+  <div class="sr-card p-6">
+    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Baseline Evaluation</h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">No extraction runs yet. Showing baseline metrics from the labeled dataset.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% for model in ['keyword', 'tfidf'] %}
+      <div class="sr-card p-5 text-center">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">{{ model }}</p>
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ "%.3f"|format(baseline_metrics[model].f1) }}</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">F1</span>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+            <span>Precision</span>
+            <span>{{ "%.3f"|format(baseline_metrics[model].precision) }}</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div class="bg-indigo-600 h-1.5 rounded-full" style="width: {{ (baseline_metrics[model].precision * 100)|round(1) }}%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+            <span>Recall</span>
+            <span>{{ "%.3f"|format(baseline_metrics[model].recall) }}</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div class="bg-indigo-600 h-1.5 rounded-full" style="width: {{ (baseline_metrics[model].recall * 100)|round(1) }}%"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="mt-5 text-sm text-gray-500 dark:text-gray-400">
+      Run <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">python -m eval.run_eval --final</code> to generate a full evaluation report with Gemini results.
+    </p>
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="sr-empty-state">
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">No evaluation data yet</h3>
+    <p class="text-gray-600 dark:text-gray-400 mb-6">Run the evaluation script to generate metrics, or ensure <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">eval/labeled/labeled_messages.csv</code> exists.</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/imports" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold">Go to Imports</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

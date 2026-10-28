@@ -2,63 +2,77 @@
 
 {% block title %}Log in – {{ app_name }}{% endblock %}
 
-{% block content %}
-<div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="auth-header">
-      <div class="brand">{{ app_name }}</div>
-      <h1>Log in</h1>
-      <p>Enter your credentials to access your plan.</p>
+{% block page_content %}
+<div class="max-w-md w-full space-y-8">
+  <div class="text-center">
+    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 mb-4 dark:bg-indigo-900/20 dark:text-indigo-400">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+    </div>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome back</h2>
+    <p class="text-gray-600 dark:text-gray-400 text-sm">Sign in to your Study Rescue account</p>
+  </div>
+
+  {% if errors.general %}
+  <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-100" role="alert">
+    {{ errors.general }}
+  </div>
+  {% endif %}
+
+  <form method="post" action="/auth/login" class="space-y-5" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="sr-input {% if errors.email %}border-rose-500{% endif %} focus:ring-2 focus:ring-indigo-500/50"
+        value="{{ form_data.email or '' }}"
+        placeholder="you@university.edu"
+        autocomplete="email"
+        required
+      >
+      {% if errors.email %}
+      <p class="sr-field-error">{{ errors.email }}</p>
+      {% endif %}
     </div>
 
-    {% if errors.general %}
-    <div class="alert alert-error" role="alert" id="general-error">
-      {{ errors.general }}
+    <div class="space-y-2">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="sr-input {% if errors.password %}border-rose-500{% endif %} focus:ring-2 focus:ring-indigo-500/50"
+        autocomplete="current-password"
+        required
+      >
+      {% if errors.password %}
+      <p class="sr-field-error">{{ errors.password }}</p>
+      {% endif %}
     </div>
-    {% endif %}
 
-    <form method="post" action="/auth/login" novalidate>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button
+      type="submit"
+      class="sr-btn sr-btn-primary w-full py-3 text-sm font-semibold"
+    >
+      Log in
+    </button>
+  </form>
 
-      <div class="form-group">
-        <label for="email">Email address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          class="form-control {% if errors.email %}is-invalid{% endif %}"
-          value="{{ form_data.email or '' }}"
-          autocomplete="email"
-          required
-          {% if errors.email %}aria-invalid="true" aria-describedby="email_error"{% endif %}
-        >
-        {% if errors.email %}
-        <span class="field-error" id="email_error">{{ errors.email }}</span>
-        {% endif %}
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          class="form-control {% if errors.password %}is-invalid{% endif %}"
-          autocomplete="current-password"
-          required
-          {% if errors.password %}aria-invalid="true" aria-describedby="password_error"{% endif %}
-        >
-        {% if errors.password %}
-        <span class="field-error" id="password_error">{{ errors.password }}</span>
-        {% endif %}
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block">Log in</button>
-    </form>
-
-    <div class="auth-footer">
-      Don't have an account? <a href="/auth/signup">Sign up</a>
+  <div class="relative">
+    <div class="absolute inset-0 flex items-center">
+      <span class="w-full border-t border-gray-200 dark:border-gray-700"></span>
+    </div>
+    <div class="relative flex justify-center text-xs uppercase">
+      <span class="bg-gray-50 dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-400">Or continue with</span>
     </div>
   </div>
+
+  <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+    Don't have an account?
+    <a href="/auth/signup" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">Sign up</a>
+  </p>
 </div>
 {% endblock %}

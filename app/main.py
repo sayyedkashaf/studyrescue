@@ -9,9 +9,10 @@ from fastapi import FastAPI, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
-from app.config import APP_NAME, DEBUG
+from app.config import APP_NAME, DEBUG, ENV, CORS_ENABLED, CORS_ALLOW_ORIGINS, CORS_ALLOW_CREDENTIALS, SESSION_COOKIE_SECURE, SESSION_COOKIE_SAMESITE, SESSION_COOKIE_DOMAIN, FRONTEND_URL
 from app.db import create_tables, engine
 from app.schemas import HealthResponse
 from app.models import User
@@ -44,6 +45,19 @@ app = FastAPI(
     redoc_url=None,
     lifespan=lifespan,
 )
+
+# ── CORS middleware (production cross-origin support) ────────────────
+
+if CORS_ENABLED:
+    _allow_origins = CORS_ALLOW_ORIGINS or [FRONTEND_URL] if FRONTEND_URL else ["*"]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_allow_origins,
+        allow_credentials=CORS_ALLOW_CREDENTIALS,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["Set-Cookie"],
+    )
 
 # Static files and templates
 _base = Path(__file__).resolve().parent

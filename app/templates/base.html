@@ -1,49 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            blue: {
+              600: '#2563eb',
+              500: '#3b82f6',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="stylesheet" href="/static/css/tailwind.css">
   <link rel="stylesheet" href="/static/css/polish.css">
   {% block head %}{% endblock %}
 </head>
-<body>
-  <div class="{% if current_user %}app-layout{% endif %}">
-    {% if current_user %}
-    <!-- Persistent Left Sidebar -->
-    <aside class="sidebar" aria-label="Main Navigation">
-      <div class="sidebar-header">
-        <a href="/dashboard" class="sidebar-brand">
+<body class="antialiased">
+  <!-- Toast Container -->
+  <div id="toast-container" class="sr-toast-container"></div>
+
+  {% if current_user %}
+  <!-- App Shell (Authenticated) -->
+  <div class="sr-app-layout">
+    <!-- Sidebar -->
+    <aside class="sr-sidebar w-64 flex flex-col shrink-0 hidden lg:block" aria-label="Main Navigation">
+      <div class="sr-sidebar-header px-6 py-5 border-b border-gray-700">
+        <a href="/dashboard" class="sr-sidebar-brand flex items-center gap-2 text-white text-lg font-bold no-underline hover:no-underline">
+          <span class="text-indigo-400">🎯</span>
           {{ app_name }}
-          <span>University Workload</span>
+          <span class="text-gray-400 text-xs mt-0.5 block">University Workload</span>
         </a>
       </div>
-      <ul class="sidebar-nav">
-        <li><a href="/dashboard" class="{% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a></li>
-        <li><a href="/tasks" class="{% if active_page == 'tasks' %}active{% endif %}">Tasks</a></li>
-        <li><a href="/imports" class="{% if active_page == 'imports' %}active{% endif %}">Imports</a></li>
-        <li><a href="/settings" class="{% if active_page == 'settings' %}active{% endif %}">Settings</a></li>
-        <li><a href="/evaluation" class="{% if active_page == 'evaluation' %}active{% endif %}">Evaluation</a></li>
+      <ul class="sr-nav flex-1 px-2 py-3 list-none space-y-1">
+        <li><a href="/dashboard" class="sr-nav-link {% if active_page == 'dashboard' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">📊</span> <span>Dashboard</span></a></li>
+        <li><a href="/tasks" class="sr-nav-link {% if active_page == 'tasks' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">✅</span> <span>Tasks</span></a></li>
+        <li><a href="/imports" class="sr-nav-link {% if active_page == 'imports' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">📥</span> <span>Imports</span></a></li>
+        <li><a href="/settings" class="sr-nav-link {% if active_page == 'settings' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">⚙️</span> <span>Settings</span></a></li>
+        <li><a href="/evaluation" class="sr-nav-link {% if active_page == 'evaluation' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">📈</span> <span>Evaluation</span></a></li>
       </ul>
-      <div class="sidebar-footer">
-        <div class="user-info">
-          {{ current_user.display_name }}
-          <span class="user-email">{{ current_user.email }}</span>
-        </div>
-        <form method="post" action="/auth/logout">
+      <div class="sr-sidebar-footer p-5 border-t border-gray-700">
+        <form method="post" action="/auth/logout" class="space-y-3">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit" id="sidebar-logout-btn">Log out</button>
+          <button type="submit" class="sr-btn sr-btn-secondary w-full text-sm py-2">
+            <span class="text-red-400">🚪</span> Log out
+          </button>
         </form>
+        <div class="pt-4 border-t border-gray-700">
+          <div class="text-gray-300 text-sm font-medium truncate">{{ current_user.display_name }}</div>
+          <div class="text-gray-500 text-xs truncate mt-0.5">{{ current_user.email }}</div>
+        </div>
       </div>
     </aside>
-    {% endif %}
 
-    <!-- Single content block across all states -->
-    <main class="{% if current_user %}main-content{% endif %}" id="main-content">
-      {% block content %}{% endblock %}
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleMobileSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="sr-main-content bg-gray-50 min-h-screen" id="main-content">
+      <!-- Mobile Header -->
+      <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+        <button onclick="toggleMobileSidebar()" class="text-gray-600 hover:text-gray-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <h1 class="text-lg font-bold text-gray-900">{% block page_title %}{{ app_name }}{% endblock %}</h1>
+        <div class="w-8"></div>
+      </div>
+
+      <div id="page-body">
+  {% else %}
+  <!-- Auth Pages (no sidebar) -->
+  <main class="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
+    <div id="page-body">
+  {% endif %}
+
+    {% block page_content %}{% endblock %}
+
+  </div>
+  {% if current_user %}
     </main>
   </div>
+  {% else %}
+    </main>
+  {% endif %}
 
   <script src="/static/js/main.js"></script>
   {% block scripts %}{% endblock %}

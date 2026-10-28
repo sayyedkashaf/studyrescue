@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from pathlib import Path
 
-from app.config import APP_NAME, INVITE_CODE
+from app.config import APP_NAME, INVITE_CODE, SESSION_COOKIE_NAME, SESSION_COOKIE_SECURE, SESSION_COOKIE_SAMESITE, SESSION_COOKIE_DOMAIN, SESSION_MAX_AGE_SECONDS
 from app.db import get_db
 from app.models import User, UserSettings
 from app.auth.security import (
@@ -22,8 +22,8 @@ from app.auth.security import (
     create_session_token,
     generate_csrf_token,
     verify_csrf_token,
-    SESSION_COOKIE_NAME,
-    SESSION_MAX_AGE_SECONDS,
+    SESSION_COOKIE_NAME as _SESSION_COOKIE_NAME,
+    SESSION_MAX_AGE_SECONDS as _SESSION_MAX_AGE_SECONDS,
 )
 from app.auth.deps import get_current_user_optional
 
@@ -33,6 +33,34 @@ _templates_dir = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_templates_dir))
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _set_session_cookie(redirect: RedirectResponse, session_token: str) -> RedirectResponse:
+    """Set a production-ready session cookie on a redirect response."""
+    redirect.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_token,
+        max_age=SESSION_MAX_AGE_SECONDS,
+        httponly=True,
+        samesite=SESSION_COOKIE_SAMESITE,
+        secure=SESSION_COOKIE_SECURE,
+        domain=SESSION_COOKIE_DOMAIN,
+        path="/",
+    )
+    return redirect
+
+
+def _clear_session_cookie(redirect: RedirectResponse) -> RedirectResponse:
+    """Clear the session cookie on a redirect response."""
+    redirect.delete_cookie(
+        key=SESSION_COOKIE_NAME,
+        httponly=True,
+        samesite=SESSION_COOKIE_SAMESITE,
+        secure=SESSION_COOKIE_SECURE,
+        domain=SESSION_COOKIE_DOMAIN,
+        path="/",
+    )
+    return redirect
 
 
 # ── Signup ───────────────────────────────────────────────────────────
@@ -136,13 +164,7 @@ def post_signup(
     # Issue session cookie and redirect
     session_token = create_session_token(user.id)
     redirect = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-    redirect.set_cookie(
-        key=SESSION_COOKIE_NAME,
-        value=session_token,
-        max_age=SESSION_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _set_session_cookie(redirect, session_token)
     return redirect
 
 
@@ -209,13 +231,7 @@ def post_login(
     # Success: set session cookie and redirect to dashboard
     session_token = create_session_token(user.id)
     redirect = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-    redirect.set_cookie(
-        key=SESSION_COOKIE_NAME,
-        value=session_token,
-        max_age=SESSION_MAX_AGE_SECONDS,
-        httponly=True,
-        samesite="lax",
-    )
+    _set_session_cookie(redirect, session_token)
     return redirect
 
 
@@ -231,9 +247,5 @@ def post_logout(
         pass
 
     redirect = RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
-    redirect.delete_cookie(
-        key=SESSION_COOKIE_NAME,
-        httponly=True,
-        samesite="lax",
-    )
+    _clear_session_cookie(redirect)
     return redirect
