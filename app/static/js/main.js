@@ -42,10 +42,10 @@
 
     const id = 'toast-' + ++toastIdCounter;
     const typeConfig = {
-      success: { icon: '✅', border: 'border-l-4 border-emerald-500', bg: 'bg-emerald-50/50', text: 'text-emerald-700' },
-      error:   { icon: '❌', border: 'border-l-4 border-rose-500', bg: 'bg-rose-50/50', text: 'text-rose-700' },
-      warning: { icon: '⚠️', border: 'border-l-4 border-amber-500', bg: 'bg-amber-50/50', text: 'text-amber-700' },
-      info:    { icon: 'ℹ️', border: 'border-l-4 border-blue-500', bg: 'bg-blue-50/50', text: 'text-blue-700' },
+      success: { icon: '✅', border: 'border-l-4 border-emerald-400', bg: 'bg-[#111827]', text: 'text-[#34d399]' },
+      error:   { icon: '❌', border: 'border-l-4 border-red-400', bg: 'bg-[#111827]', text: 'text-[#f87171]' },
+      warning: { icon: '⚠️', border: 'border-l-4 border-amber-400', bg: 'bg-[#111827]', text: 'text-[#fbbf24]' },
+      info:    { icon: 'ℹ️', border: 'border-l-4 border-indigo-400', bg: 'bg-[#111827]', text: 'text-[#a5b4fc]' },
     }[type] || typeConfig.info;
 
     const dark = document.documentElement.classList.contains('dark');

@@ -7,53 +7,53 @@
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Review Candidates</h1>
-      <p class="text-gray-600 dark:text-gray-400 text-sm">Batch: <strong class="text-gray-900 dark:text-white">{{ batch.source_name }}</strong> &bull; Review extracted tasks before adding them to your schedule.</p>
+      <h1 class="text-2xl font-bold text-[#f9fafb] mb-1">Review Candidates</h1>
+      <p class="text-[#9ca3af] text-sm">Batch: <strong class="text-[#f9fafb]">{{ batch.source_name }}</strong> &bull; Review extracted tasks before adding them to your schedule.</p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex items-center gap-2">
       {% if cards %}
       <form method="post" action="/review/{{ batch.id }}/confirm-definite" class="inline" onsubmit="return confirm('Confirm all definite candidates?')">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="sr-btn sr-btn-primary px-5 py-2.5 text-sm font-semibold flex items-center gap-2" {% if not has_definite %}disabled title="No definite tasks with verified dates available"{% endif %}>
+        <button type="submit" class="sr-btn sr-btn-primary px-5 py-2.5 text-sm font-semibold flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25" {% if not has_definite %}disabled title="No definite tasks with verified dates available"{% endif %}>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
           Confirm all definite
         </button>
       </form>
       {% endif %}
-      <a href="/imports" class="sr-btn sr-btn-secondary px-5 py-2.5 text-sm font-semibold">Back to Imports</a>
+      <a href="/imports" class="sr-btn sr-btn-secondary px-5 py-2.5 text-sm font-semibold rounded-xl bg-[#111827] border border-[#1f2937] text-[#f9fafb]">Back to Imports</a>
     </div>
   </div>
 
   {% if info %}
-  <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-100" role="status">
+  <div class="bg-indigo-500/10 border border-indigo-500/25 text-[#a5b4fc] px-4 py-3 rounded-xl text-sm" role="status">
     {{ info }}
   </div>
   {% endif %}
 
   {% if warning %}
-  <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-100" role="alert">
+  <div class="bg-amber-500/10 border border-amber-500/25 text-[#fbbf24] px-4 py-3 rounded-xl text-sm" role="alert">
     {{ warning }}
   </div>
   {% endif %}
 
   {% if not cards %}
-  <div class="sr-empty-state">
-    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Nothing to review</h3>
-    <p class="text-gray-600 dark:text-gray-400 mb-6">Nothing to review. Import messages to get started.</p>
-    <a href="/imports" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold">Go to Imports</a>
+  <div class="sr-empty-state bg-[#111827] border border-dashed border-[#1f2937] rounded-xl p-10 text-center">
+    <h3 class="text-lg font-bold text-[#f9fafb] mb-2">Nothing to review</h3>
+    <p class="text-[#9ca3af] mb-6">Nothing to review. Import messages to get started.</p>
+    <a href="/imports" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25">Go to Imports</a>
   </div>
   {% else %}
-  <div class="cards-grid gap-5">
+  <div class="cards-grid space-y-5">
     {% for card in cards %}
-    <div class="sr-card p-6" id="card-{{ card.primary_id }}">
+    <div class="sr-card bg-[#111827] border border-[#1f2937] p-6 rounded-2xl shadow-xl" id="card-{{ card.primary_id }}">
       <!-- Quotes -->
       <div class="mb-5">
-        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Source Quote{% if card.quotes|length > 1 %}s ({{ card.quotes|length }} occurrences merged){% endif %}</p>
+        <p class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider mb-3">Source Quote{% if card.quotes|length > 1 %}s ({{ card.quotes|length }} occurrences merged){% endif %}</p>
         {% for q in card.quotes %}
-        <blockquote class="border-l-3 border-indigo-500 pl-4 py-2 mb-3 bg-indigo-50/50 dark:bg-indigo-900/10">
-          <p class="text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed">"{{ q.quote }}"</p>
-          <footer class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-            <span class="font-medium text-gray-700 dark:text-gray-300">— {{ q.sender_alias }}</span>
+        <blockquote class="border-l-3 border-indigo-500 pl-4 py-2.5 mb-3 bg-[#0b0f19] border border-[#1f2937] rounded-r-xl">
+          <p class="text-sm text-[#f9fafb] italic leading-relaxed">"{{ q.quote }}"</p>
+          <footer class="text-xs text-[#9ca3af] mt-1.5 flex items-center gap-1.5">
+            <span class="font-medium text-[#f9fafb]">— {{ q.sender_alias }}</span>
             {% if q.sent_at %}
             <span>• {{ q.sent_at.strftime('%d %b %Y %H:%M') }}</span>
             {% endif %}
@@ -64,16 +64,16 @@
 
       <!-- Metadata Badges -->
       <div class="flex flex-wrap gap-2 mb-5">
-        <span class="sr-badge bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 text-xs px-2.5 py-1">
+        <span class="sr-badge bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs px-2.5 py-1 rounded-md">
           Certainty: {{ card.certainty|capitalize }}
         </span>
         {% if card.deadline_flag == 'ambiguous' %}
-        <span class="sr-badge bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 text-xs px-2.5 py-1">Check this date</span>
+        <span class="sr-badge bg-amber-500/10 border border-amber-500/20 text-[#fbbf24] text-xs px-2.5 py-1 rounded-md">Check this date</span>
         {% elif card.deadline_flag == 'unresolved' %}
-        <span class="sr-badge bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400 text-xs px-2.5 py-1">Pick a date</span>
+        <span class="sr-badge bg-red-500/10 border border-red-500/20 text-[#f87171] text-xs px-2.5 py-1 rounded-md">Pick a date</span>
         {% endif %}
         {% if not card.deadline_date %}
-        <span class="sr-badge bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400 text-xs px-2.5 py-1">No deadline set</span>
+        <span class="sr-badge bg-red-500/10 border border-red-500/20 text-[#f87171] text-xs px-2.5 py-1 rounded-md">No deadline set</span>
         {% endif %}
       </div>
 
@@ -83,38 +83,38 @@
         <input type="hidden" name="candidate_ids" value="{{ card.candidate_ids_str }}">
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="space-y-2">
-            <label class="sr-label">Title</label>
-            <input type="text" id="title-{{ card.primary_id }}" name="title" value="{{ card.title }}" required class="sr-input focus:ring-2 focus:ring-indigo-500/50">
+          <div class="space-y-1.5">
+            <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Title</label>
+            <input type="text" id="title-{{ card.primary_id }}" name="title" value="{{ card.title }}" required class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
           </div>
-          <div class="space-y-2">
-            <label class="sr-label">Subject</label>
-            <input type="text" id="subject-{{ card.primary_id }}" name="subject" value="{{ card.subject or '' }}" placeholder="Subject" class="sr-input focus:ring-2 focus:ring-indigo-500/50">
+          <div class="space-y-1.5">
+            <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Subject</label>
+            <input type="text" id="subject-{{ card.primary_id }}" name="subject" value="{{ card.subject or '' }}" placeholder="Subject" class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
           </div>
-          <div class="space-y-2">
-            <label class="sr-label">Kind</label>
-            <select id="kind-{{ card.primary_id }}" name="kind" class="sr-select focus:ring-2 focus:ring-indigo-500/50">
+          <div class="space-y-1.5">
+            <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Kind</label>
+            <select id="kind-{{ card.primary_id }}" name="kind" class="sr-select bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
               <option value="assignment" {% if card.kind == 'assignment' %}selected{% endif %}>Assignment</option>
               <option value="exam" {% if card.kind == 'exam' %}selected{% endif %}>Exam</option>
               <option value="submission" {% if card.kind == 'submission' %}selected{% endif %}>Submission</option>
               <option value="other" {% if card.kind == 'other' %}selected{% endif %}>Other</option>
             </select>
           </div>
-          <div class="space-y-2">
-            <label class="sr-label">Deadline</label>
-            <input type="date" id="deadline-{{ card.primary_id }}" name="deadline" value="{{ card.deadline_date.isoformat() if card.deadline_date else '' }}" class="sr-input focus:ring-2 focus:ring-indigo-500/50">
+          <div class="space-y-1.5">
+            <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Deadline</label>
+            <input type="date" id="deadline-{{ card.primary_id }}" name="deadline" value="{{ card.deadline_date.isoformat() if card.deadline_date else '' }}" class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
           </div>
-          <div class="space-y-2 lg:col-span-2">
-            <label class="sr-label">Estimate (hours)</label>
-            <input type="number" id="estimate-{{ card.primary_id }}" name="estimated_hours" step="0.5" min="0" value="{{ card.estimated_hours if card.estimated_hours is not none else '' }}" placeholder="Estimate" class="sr-input focus:ring-2 focus:ring-indigo-500/50">
+          <div class="space-y-1.5 lg:col-span-2">
+            <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Estimate (hours)</label>
+            <input type="number" id="estimate-{{ card.primary_id }}" name="estimated_hours" step="0.5" min="0" value="{{ card.estimated_hours if card.estimated_hours is not none else '' }}" placeholder="Estimate" class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
           </div>
         </div>
 
-        <div class="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button type="submit" class="sr-btn sr-btn-primary px-5 py-2 text-sm font-semibold" id="confirm-btn-{{ card.primary_id }}">
+        <div class="flex items-center gap-3 pt-4 border-t border-[#1f2937]">
+          <button type="submit" class="sr-btn sr-btn-primary px-5 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25" id="confirm-btn-{{ card.primary_id }}">
             Confirm
           </button>
-          <button type="button" class="sr-btn sr-btn-secondary px-5 py-2 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-800" onclick="document.getElementById('dismiss-form-{{ card.primary_id }}').submit()">
+          <button type="button" class="sr-btn px-5 py-2 text-sm font-semibold rounded-xl text-[#f87171] bg-red-500/10 hover:bg-red-500/20 border border-red-500/25" onclick="document.getElementById('dismiss-form-{{ card.primary_id }}').submit()">
             Dismiss
           </button>
         </div>

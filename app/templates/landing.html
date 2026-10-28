@@ -1,6 +1,47 @@
-<h1>Turn the messages you already get into a realistic plan</h1>
-<p>Import your WhatsApp study chat.</p>
-<p>Extract tasks, deadlines, and estimates automatically.</p>
-<p>Plan what is feasible and track progress.</p>
-<a href="/auth/signup">Sign up</a>
-<a href="/auth/login">Log in</a>
+{% extends "base.html" %}
+
+{% block title %}Study Rescue – AI Workload & Task Rescue{% endblock %}
+
+{% block page_content %}
+<div class="max-w-2xl w-full text-center space-y-8 my-6">
+  <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
+    <span>🎯</span> University Workload Intelligence
+  </div>
+
+  <div class="space-y-4">
+    <h1 class="text-3xl sm:text-5xl font-extrabold text-[#f9fafb] tracking-tight leading-tight">
+      Turn the messages you already get into a realistic plan
+    </h1>
+    <p class="text-base sm:text-lg text-[#9ca3af] max-w-xl mx-auto">
+      Import your WhatsApp study chat. Extract tasks, deadlines, and estimates automatically. Plan what is feasible and track your academic progress.
+    </p>
+  </div>
+
+  <div class="sr-card bg-[#111827] border border-[#1f2937] p-8 rounded-2xl shadow-2xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+    <div class="bg-[#0b0f19] border border-[#1f2937] p-4 rounded-xl">
+      <div class="text-xl mb-2">📥</div>
+      <h3 class="font-bold text-sm text-[#f9fafb] mb-1">Import Chat</h3>
+      <p class="text-xs text-[#9ca3af]">Paste chat or upload export file in seconds.</p>
+    </div>
+    <div class="bg-[#0b0f19] border border-[#1f2937] p-4 rounded-xl">
+      <div class="text-xl mb-2">⚡</div>
+      <h3 class="font-bold text-sm text-[#f9fafb] mb-1">AI Extraction</h3>
+      <p class="text-xs text-[#9ca3af]">Detect deadlines, dates, and workloads.</p>
+    </div>
+    <div class="bg-[#0b0f19] border border-[#1f2937] p-4 rounded-xl">
+      <div class="text-xl mb-2">📈</div>
+      <h3 class="font-bold text-sm text-[#f9fafb] mb-1">Stay Feasible</h3>
+      <p class="text-xs text-[#9ca3af]">Real-time overrun prediction and risk flags.</p>
+    </div>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
+    <a href="/auth/signup" class="sr-btn sr-btn-primary px-8 py-3.5 text-base font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all w-full sm:w-auto">
+      Sign up
+    </a>
+    <a href="/auth/login" class="sr-btn sr-btn-secondary px-8 py-3.5 text-base font-semibold rounded-xl bg-[#111827] border border-[#1f2937] text-[#f9fafb] hover:bg-[#1f2937] hover:border-[#374151] transition-all w-full sm:w-auto">
+      Log in
+    </a>
+  </div>
+</div>
+{% endblock %}

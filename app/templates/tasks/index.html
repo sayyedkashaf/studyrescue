@@ -7,37 +7,37 @@
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Tasks</h1>
-      <p class="text-gray-600 dark:text-gray-400 text-sm">Manage your academic commitments and track deadlines.</p>
+      <h1 class="text-2xl font-bold text-[#f9fafb] mb-1">Tasks</h1>
+      <p class="text-[#9ca3af] text-sm">Manage your academic commitments and track deadlines.</p>
     </div>
-    <a href="#add-task-card" class="sr-btn sr-btn-primary px-5 py-2.5 text-sm">
+    <a href="#add-task-card" class="sr-btn sr-btn-primary px-5 py-2.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg shadow-indigo-500/25">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
       New Task
     </a>
   </div>
 
   {% if error %}
-  <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-100" role="alert">
+  <div class="bg-red-500/10 border border-red-500/25 text-[#f87171] px-4 py-3 rounded-xl text-sm" role="alert">
     {{ error }}
   </div>
   {% endif %}
 
   {% if success %}
-  <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100" role="alert">
+  <div class="bg-emerald-500/10 border border-emerald-500/25 text-[#34d399] px-4 py-3 rounded-xl text-sm" role="alert">
     {{ success }}
   </div>
   {% endif %}
 
   <!-- Overrun & Workload Banner -->
-  <div class="sr-card p-5 border-l-4 border-blue-500">
+  <div class="sr-card bg-[#111827] border border-[#1f2937] p-5 rounded-xl border-l-4 border-l-indigo-500 shadow-lg">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center dark:bg-indigo-900/20 dark:text-indigo-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
         </div>
         <div>
-          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Overrun Multiplier</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white" id="overrun-factor-text">
+          <p class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider">Overrun Multiplier</p>
+          <p class="text-xl font-bold text-[#f9fafb]" id="overrun-factor-text">
             {% if (insufficient_data is not defined) or insufficient_data or (overrun_factor is not defined) or (overrun_factor is none) %}
             Not enough data yet
             {% else %}
@@ -48,7 +48,7 @@
       </div>
 
       {% if overrun_samples is defined %}
-      <div class="text-xs text-gray-500 dark:text-gray-400">
+      <div class="text-xs text-[#9ca3af]">
         Based on {{ overrun_samples }} completed task{{ 's' if overrun_samples != 1 }}
         {% if overrun_min_samples is defined %}
         ({{ overrun_min_samples }} needed)
@@ -57,7 +57,7 @@
       {% endif %}
 
       {% if suggestions is defined and suggestions %}
-      <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-md text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-100 w-full md:w-auto">
+      <div class="bg-amber-500/10 border border-amber-500/20 text-[#fbbf24] px-4 py-2.5 rounded-xl text-sm w-full md:w-auto">
         {% for s in suggestions %}
         <p class="mb-1 last:mb-0">{{ s }}</p>
         {% endfor %}
@@ -67,108 +67,108 @@
   </div>
 
   <!-- Add Task Card -->
-  <div id="add-task-card" class="sr-card p-5">
+  <div id="add-task-card" class="sr-card bg-[#111827] border border-[#1f2937] p-6 rounded-xl shadow-lg">
     <div class="flex items-center justify-between mb-5">
-      <h2 class="text-lg font-bold text-gray-900 dark:text-white">Add a Task Manually</h2>
+      <h2 class="text-lg font-bold text-[#f9fafb]">Add a Task Manually</h2>
     </div>
     <form method="post" action="/tasks" class="space-y-4">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="space-y-2">
-          <label class="sr-label">Title <span class="text-rose-500">*</span></label>
+        <div class="space-y-1.5">
+          <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Title <span class="text-red-400">*</span></label>
           <input
             type="text"
             id="task-title"
             name="title"
-            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-lg px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             placeholder="e.g. Linear Algebra Assignment 2"
             value="{{ form_data.title or '' }}"
             required
           >
         </div>
-        <div class="space-y-2">
-          <label class="sr-label">Subject</label>
+        <div class="space-y-1.5">
+          <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Subject</label>
           <input
             type="text"
             id="task-subject"
             name="subject"
-            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-lg px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             placeholder="e.g. Maths, CS101"
             value="{{ form_data.subject or '' }}"
           >
         </div>
-        <div class="space-y-2">
-          <label class="sr-label">Kind</label>
-          <select id="task-kind" name="kind" class="sr-select focus:ring-2 focus:ring-indigo-500/50">
+        <div class="space-y-1.5">
+          <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Kind</label>
+          <select id="task-kind" name="kind" class="sr-select bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-lg px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
             <option value="assignment" {% if form_data.kind == 'assignment' %}selected{% endif %}>Assignment</option>
             <option value="exam" {% if form_data.kind == 'exam' %}selected{% endif %}>Exam</option>
             <option value="submission" {% if form_data.kind == 'submission' %}selected{% endif %}>Submission</option>
             <option value="other" {% if form_data.kind == 'other' %}selected{% endif %}>Other</option>
           </select>
         </div>
-        <div class="space-y-2">
-          <label class="sr-label">Deadline</label>
+        <div class="space-y-1.5">
+          <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Deadline</label>
           <input
             type="date"
             id="task-deadline"
             name="deadline"
-            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-lg px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             value="{{ form_data.deadline or '' }}"
           >
         </div>
-        <div class="space-y-2">
-          <label class="sr-label">Estimated Hours</label>
+        <div class="space-y-1.5">
+          <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Estimated Hours</label>
           <input
             type="number"
             step="0.5"
             min="0"
             id="task-est-hours"
             name="estimated_hours"
-            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-lg px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             placeholder="e.g. 4.0"
             value="{{ form_data.estimated_hours or '' }}"
           >
         </div>
-        <div class="space-y-2 md:col-span-2">
-          <label class="sr-label">Notes / Description</label>
+        <div class="space-y-1.5 md:col-span-2">
+          <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Notes / Description</label>
           <input
             type="text"
             id="task-description"
             name="description"
-            class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-lg px-3.5 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             placeholder="Optional details or instructions"
             value="{{ form_data.description or '' }}"
           >
         </div>
       </div>
 
-      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold w-auto">
+      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25">
         Create Task
       </button>
     </form>
   </div>
 
   <!-- Filters -->
-  <div class="sr-filter-bar">
+  <div class="sr-filter-bar bg-[#111827] border border-[#1f2937] p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between">
     <div class="flex flex-wrap gap-2">
-      <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider self-center">Status:</span>
-      <a href="/tasks?status=all{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'all' or not current_status %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">All</a>
-      <a href="/tasks?status=open{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'open' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">Open</a>
-      <a href="/tasks?status=overdue{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'overdue' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">Overdue</a>
-      <a href="/tasks?status=completed{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs {% if current_status == 'completed' %}bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400{% endif %}">Completed</a>
+      <span class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider self-center mr-1">Status:</span>
+      <a href="/tasks?status=all{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn px-3 py-1.5 text-xs rounded-lg transition-all {% if current_status == 'all' or not current_status %}bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}bg-[#0b0f19] border border-[#1f2937] text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">All</a>
+      <a href="/tasks?status=open{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn px-3 py-1.5 text-xs rounded-lg transition-all {% if current_status == 'open' %}bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}bg-[#0b0f19] border border-[#1f2937] text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">Open</a>
+      <a href="/tasks?status=overdue{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn px-3 py-1.5 text-xs rounded-lg transition-all {% if current_status == 'overdue' %}bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}bg-[#0b0f19] border border-[#1f2937] text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">Overdue</a>
+      <a href="/tasks?status=completed{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="sr-btn px-3 py-1.5 text-xs rounded-lg transition-all {% if current_status == 'completed' %}bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}bg-[#0b0f19] border border-[#1f2937] text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">Completed</a>
     </div>
 
     <div class="flex items-center gap-3 flex-wrap">
-      <label class="sr-label text-xs">Subject:</label>
-      <select id="subject-select" class="sr-select text-sm focus:ring-2 focus:ring-indigo-500/50" onchange="window.location.href=this.value" style="width: auto;">
+      <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af] mb-0">Subject:</label>
+      <select id="subject-select" class="sr-select bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] text-sm rounded-lg px-3 py-1.5 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25" onchange="window.location.href=this.value" style="width: auto;">
         <option value="/tasks?status={{ current_status or 'all' }}">All Subjects</option>
         {% for s in user_subjects %}
         <option value="/tasks?status={{ current_status or 'all' }}&subject={{ s }}" {% if current_subject == s %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
       </select>
       {% if current_subject or (current_status and current_status != 'all') %}
-      <a href="/tasks" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs">Reset</a>
+      <a href="/tasks" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs bg-[#0b0f19] border border-[#1f2937] text-[#9ca3af] hover:text-[#f9fafb]">Reset</a>
       {% endif %}
     </div>
   </div>
@@ -177,58 +177,58 @@
   {% if tasks %}
   <div class="task-list space-y-3">
     {% for task in tasks %}
-    <div class="sr-task-card {% if task.is_overdue %}is-overdue{% endif %} {% if task.status == 'completed' %}is-completed{% endif %}" id="task-card-{{ task.id }}">
+    <div class="sr-task-card bg-[#111827] border border-[#1f2937] p-5 rounded-xl shadow-lg {% if task.is_overdue %}border-l-4 border-l-red-500{% endif %} {% if task.status == 'completed' %}opacity-75{% endif %}" id="task-card-{{ task.id }}">
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-1">
-            <h3 class="task-title font-bold text-gray-900 dark:text-white text-base leading-tight">{{ task.title }}</h3>
+          <div class="flex items-center flex-wrap gap-2 mb-2">
+            <h3 class="task-title font-bold text-[#f9fafb] text-base leading-tight">{{ task.title }}</h3>
             {% if task.subject %}
-            <span class="sr-badge bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-xs px-2 py-0.5">{{ task.subject }}</span>
+            <span class="sr-badge bg-[#1f2937] border border-[#374151] text-[#9ca3af] text-xs px-2.5 py-0.5 rounded-md">{{ task.subject }}</span>
             {% endif %}
-            <span class="sr-badge sr-badge-{{ task.status }} text-xs px-2 py-0.5">{{ task.status | replace('_', ' ') }}</span>
+            <span class="sr-badge sr-badge-{{ task.status }} text-xs px-2.5 py-0.5 rounded-md">{{ task.status | replace('_', ' ') }}</span>
             {% if task.is_overdue %}
-            <span class="sr-badge sr-badge-overdue text-xs px-2 py-0.5">Overdue</span>
+            <span class="sr-badge bg-red-500/10 border border-red-500/20 text-[#f87171] text-xs px-2.5 py-0.5 rounded-md">Overdue</span>
             {% endif %}
             {% if task.kind %}
-            <span class="sr-badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400 text-xs px-2 py-0.5">{{ task.kind }}</span>
+            <span class="sr-badge bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs px-2.5 py-0.5 rounded-md">{{ task.kind }}</span>
             {% endif %}
             {% if task.risk %}
-            <span class="sr-badge text-xs px-2 py-0.5 {% if task.risk == 'overdue' %}bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400{% elif task.risk == 'infeasible' %}bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400{% elif task.risk == 'tight' %}bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400{% else %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400{% endif %}">Risk: {{ task.risk | capitalize }}</span>
+            <span class="sr-badge text-xs px-2.5 py-0.5 rounded-md {% if task.risk in ['overdue', 'infeasible'] %}bg-red-500/10 border border-red-500/20 text-[#f87171]{% elif task.risk == 'tight' %}bg-amber-500/10 border border-amber-500/20 text-[#fbbf24]{% else %}bg-emerald-500/10 border border-emerald-500/20 text-[#34d399]{% endif %}">Risk: {{ task.risk | capitalize }}</span>
             {% endif %}
           </div>
 
           {% if task.feasibility_sentence %}
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-medium">{{ task.feasibility_sentence }}</p>
+          <p class="text-sm text-[#9ca3af] mb-2 font-medium">{{ task.feasibility_sentence }}</p>
           {% endif %}
           {% if task.feasibility_note %}
-          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3 italic">{{ task.feasibility_note }}</p>
+          <p class="text-xs text-[#6b7280] mb-3 italic">{{ task.feasibility_note }}</p>
           {% endif %}
 
-          <div class="flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-400 mb-3">
+          <div class="flex flex-wrap gap-4 text-xs text-[#9ca3af] mb-3">
             {% if task.deadline %}
-            <span><span class="font-medium text-gray-900 dark:text-white">Deadline:</span> {{ task.deadline.strftime('%d %b %Y') }}</span>
+            <span><span class="font-medium text-[#f9fafb]">Deadline:</span> {{ task.deadline.strftime('%d %b %Y') }}</span>
             {% else %}
-            <span><span class="font-medium text-gray-900 dark:text-white">Deadline:</span> <em>None</em></span>
+            <span><span class="font-medium text-[#f9fafb]">Deadline:</span> <em>None</em></span>
             {% endif %}
             {% if task.estimated_hours is not none %}
-            <span><span class="font-medium text-gray-900 dark:text-white">Estimate:</span> {{ "%.1f"|format(task.estimated_hours) }} hrs</span>
+            <span><span class="font-medium text-[#f9fafb]">Estimate:</span> {{ "%.1f"|format(task.estimated_hours) }} hrs</span>
             {% endif %}
             {% if task.actual_hours is not none %}
-            <span><span class="font-medium text-gray-900 dark:text-white">Actual:</span> {{ "%.1f"|format(task.actual_hours) }} hrs</span>
+            <span><span class="font-medium text-[#f9fafb]">Actual:</span> {{ "%.1f"|format(task.actual_hours) }} hrs</span>
             {% endif %}
-            <span><span class="font-medium text-gray-900 dark:text-white">Source:</span> {{ task.source }}</span>
+            <span><span class="font-medium text-[#f9fafb]">Source:</span> {{ task.source }}</span>
           </div>
 
           {% if task.description %}
-          <div class="bg-gray-50/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700 rounded-md p-3 text-sm text-gray-700 dark:text-gray-300 mb-3">{{ task.description }}</div>
+          <div class="bg-[#0b0f19] border border-[#1f2937] rounded-lg p-3 text-sm text-[#9ca3af] mb-3">{{ task.description }}</div>
           {% endif %}
 
-          <div class="task-actions flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <div class="task-actions flex flex-wrap gap-2 pt-3 border-t border-[#1f2937]">
             <!-- Start -->
             {% if task.status == 'pending' %}
             <form method="post" action="/tasks/{{ task.id }}/start" class="inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Start</button>
+              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs bg-[#1f2937] hover:bg-[#374151] text-[#f9fafb] border border-[#374151] rounded-lg">Start</button>
             </form>
             {% endif %}
 
@@ -242,26 +242,26 @@
                 min="0"
                 name="actual_hours"
                 placeholder="hrs"
-                class="sr-input text-xs w-20 focus:ring-0"
+                class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] text-xs w-20 rounded-lg px-2.5 py-1.5 focus:border-indigo-500"
                 value="{% if task.estimated_hours %}{{ task.estimated_hours }}{% endif %}"
               >
-              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Complete</button>
+              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs bg-[#1f2937] hover:bg-[#374151] text-[#f9fafb] border border-[#374151] rounded-lg">Complete</button>
             </form>
             {% endif %}
 
             <!-- Edit -->
-            <a href="/tasks/{{ task.id }}/edit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
+            <a href="/tasks/{{ task.id }}/edit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs bg-[#1f2937] hover:bg-[#374151] text-[#f9fafb] border border-[#374151] rounded-lg">Edit</a>
 
             <!-- Cancel -->
             {% if task.status in ['pending', 'in_progress'] %}
             <form method="post" action="/tasks/{{ task.id }}/cancel" class="inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+              <button type="submit" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs bg-[#1f2937] hover:bg-[#374151] text-[#f9fafb] border border-[#374151] rounded-lg">Cancel</button>
             </form>
             {% endif %}
 
             <!-- Delete -->
-            <a href="/tasks/{{ task.id }}/delete" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-800">Delete</a>
+            <a href="/tasks/{{ task.id }}/delete" class="sr-btn px-3 py-1.5 text-xs text-[#f87171] bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 rounded-lg">Delete</a>
           </div>
         </div>
       </div>
@@ -270,13 +270,13 @@
   </div>
 
   {% else %}
-  <div class="sr-empty-state">
-    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">No tasks found</h3>
+  <div class="sr-empty-state bg-[#111827] border border-dashed border-[#1f2937] rounded-xl p-10 text-center">
+    <h3 class="text-lg font-bold text-[#f9fafb] mb-2">No tasks found</h3>
     {% if current_status or current_subject %}
-    <p class="text-gray-600 dark:text-gray-400 mb-3">No tasks matched your active filter.</p>
-    <a href="/tasks" class="sr-btn sr-btn-secondary px-5 py-2 text-sm">Clear Filters</a>
+    <p class="text-[#9ca3af] mb-4">No tasks matched your active filter.</p>
+    <a href="/tasks" class="sr-btn sr-btn-secondary px-5 py-2 text-sm bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-lg">Clear Filters</a>
     {% else %}
-    <p class="text-gray-600 dark:text-gray-400 mb-6">You haven't added any tasks yet. Use the form above to get started.</p>
+    <p class="text-[#9ca3af] mb-6">You haven't added any tasks yet. Use the form above to get started.</p>
     {% endif %}
   </div>
   {% endif %}

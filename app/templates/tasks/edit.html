@@ -3,46 +3,46 @@
 {% block title %}Edit Task – {{ app_name }}{% endblock %}
 
 {% block page_content %}
-<div style="max-width: 680px; margin: 0 auto;">
-  <div style="margin-bottom: 1.5rem;">
-    <a href="/tasks">&larr; Back to tasks</a>
-    <h1 style="margin-top: 0.5rem;">Edit Task</h1>
+<div class="max-w-2xl mx-auto space-y-6">
+  <div>
+    <a href="/tasks" class="text-sm font-medium text-indigo-400 hover:text-purple-400 inline-flex items-center gap-1.5 mb-2">&larr; Back to tasks</a>
+    <h1 class="text-2xl font-bold text-[#f9fafb]">Edit Task</h1>
   </div>
 
-  <div class="card">
+  <div class="sr-card bg-[#111827] border border-[#1f2937] rounded-2xl p-7 shadow-xl">
     {% if error %}
-    <div class="alert alert-error" role="alert">{{ error }}</div>
+    <div class="bg-red-500/10 border border-red-500/25 text-[#f87171] px-4 py-3 rounded-xl text-sm mb-5" role="alert">{{ error }}</div>
     {% endif %}
 
-    <form method="post" action="/tasks/{{ task.id }}/update">
+    <form method="post" action="/tasks/{{ task.id }}/update" class="space-y-4">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-      <div class="form-group">
-        <label for="edit-title">Title *</label>
+      <div class="space-y-1.5">
+        <label for="edit-title" class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Title <span class="text-red-400">*</span></label>
         <input
           type="text"
           id="edit-title"
           name="title"
-          class="form-control"
+          class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
           value="{{ task.title }}"
           required
         >
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="edit-subject">Subject</label>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label for="edit-subject" class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Subject</label>
           <input
             type="text"
             id="edit-subject"
             name="subject"
-            class="form-control"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             value="{{ task.subject or '' }}"
           >
         </div>
-        <div class="form-group">
-          <label for="edit-kind">Kind</label>
-          <select id="edit-kind" name="kind" class="form-control">
+        <div class="space-y-1.5">
+          <label for="edit-kind" class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Kind</label>
+          <select id="edit-kind" name="kind" class="sr-select bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25">
             <option value="assignment" {% if task.kind == 'assignment' %}selected{% endif %}>Assignment</option>
             <option value="exam" {% if task.kind == 'exam' %}selected{% endif %}>Exam</option>
             <option value="submission" {% if task.kind == 'submission' %}selected{% endif %}>Submission</option>
@@ -51,43 +51,44 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="edit-deadline">Deadline</label>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label for="edit-deadline" class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Deadline</label>
           <input
             type="date"
             id="edit-deadline"
             name="deadline"
-            class="form-control"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             value="{% if task.deadline %}{{ task.deadline.isoformat() }}{% endif %}"
           >
         </div>
-        <div class="form-group">
-          <label for="edit-est-hours">Estimated Hours</label>
+        <div class="space-y-1.5">
+          <label for="edit-est-hours" class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Estimated Hours</label>
           <input
             type="number"
             step="0.5"
             min="0"
             id="edit-est-hours"
             name="estimated_hours"
-            class="form-control"
+            class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
             value="{% if task.estimated_hours is not none %}{{ task.estimated_hours }}{% endif %}"
           >
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="edit-description">Description / Notes</label>
+      <div class="space-y-1.5">
+        <label for="edit-description" class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Description / Notes</label>
         <textarea
           id="edit-description"
           name="description"
-          class="form-control"
+          rows="4"
+          class="sr-textarea bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
         >{{ task.description or '' }}</textarea>
       </div>
 
-      <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 1.5rem;">
-        <button type="submit" class="btn btn-primary" id="save-task-btn">Save Changes</button>
-        <a href="/tasks" class="btn btn-secondary">Cancel</a>
+      <div class="flex items-center gap-3 pt-3">
+        <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25" id="save-task-btn">Save Changes</button>
+        <a href="/tasks" class="sr-btn sr-btn-secondary px-5 py-2.5 text-sm font-semibold rounded-xl bg-[#111827] border border-[#1f2937] text-[#f9fafb]">Cancel</a>
       </div>
     </form>
   </div>

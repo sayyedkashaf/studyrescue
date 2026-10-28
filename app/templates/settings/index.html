@@ -3,69 +3,69 @@
 {% block page_title %}Settings{% endblock %}
 
 {% block page_content %}
-<div class="max-w-2xl w-full space-y-8">
+<div class="max-w-2xl w-full space-y-6">
   <!-- Profile Section -->
-  <div class="sr-card p-6">
-    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Profile</h2>
-    <form method="post" class="space-y-5">
+  <div class="sr-card bg-[#111827] border border-[#1f2937] p-6 rounded-2xl shadow-xl">
+    <h2 class="text-lg font-bold text-[#f9fafb] mb-5">Profile Settings</h2>
+    <form method="post" class="space-y-4">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-      <div class="space-y-2">
-        <label class="sr-label">Display Name</label>
+      <div class="space-y-1.5">
+        <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Display Name</label>
         <input
           type="text"
           name="display_name"
-          class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+          class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
           value="{{ display_name }}"
           placeholder="Enter your name"
           required
         >
       </div>
 
-      <div class="space-y-2">
-        <label class="sr-label">Free Hours Per Day</label>
+      <div class="space-y-1.5">
+        <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Free Hours Per Day</label>
         <input
           type="number"
           name="free_hours_per_day"
           step="0.5"
           min="0"
           max="24"
-          class="sr-input focus:ring-2 focus:ring-indigo-500/50"
+          class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
           value="{{ free_hours_per_day }}"
           placeholder="e.g. 3.0"
           required
         >
-        <p class="text-xs text-gray-500 dark:text-gray-400">How many hours per day you have available for tasks.</p>
+        <p class="text-xs text-[#9ca3af]">How many hours per day you have available for academic tasks.</p>
       </div>
 
-      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold w-auto">
+      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25">
         Save Changes
       </button>
     </form>
   </div>
 
   {% if error %}
-  <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-100" role="alert">
+  <div class="bg-red-500/10 border border-red-500/25 text-[#f87171] px-4 py-3 rounded-xl text-sm" role="alert">
     {{ error }}
   </div>
   {% endif %}
 
   {% if success %}
-  <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100" role="alert">
+  <div class="bg-emerald-500/10 border border-emerald-500/25 text-[#34d399] px-4 py-3 rounded-xl text-sm" role="alert">
     {{ success }}
   </div>
   {% endif %}
 
   <!-- Data Management -->
-  <div class="sr-card p-6 border-t-0">
-    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Data Management</h2>
-    <div class="bg-rose-50/50 border border-rose-200/50 rounded-lg p-5 dark:bg-rose-900/10 dark:border-rose-800/50">
-      <h3 class="text-sm font-semibold text-rose-800 dark:text-rose-400 mb-2">Delete All Data</h3>
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">This permanently deletes all your tasks, imports, messages, candidates, and settings. This action cannot be undone.</p>
-      <a href="/settings/delete-data" class="sr-btn sr-btn-danger px-5 py-2 text-sm font-semibold flex items-center gap-2">
+  <div class="sr-card bg-[#111827] border border-[#1f2937] p-6 rounded-2xl shadow-xl">
+    <h2 class="text-lg font-bold text-[#f9fafb] mb-5">Data Management</h2>
+    <div class="bg-red-500/10 border border-red-500/25 rounded-xl p-5 space-y-3">
+      <h3 class="text-sm font-semibold text-[#f87171]">Delete All Data</h3>
+      <p class="text-sm text-[#9ca3af]">This permanently deletes all your tasks, imports, messages, candidates, and settings. This action cannot be undone.</p>
+      <a href="/settings/delete-data" class="sr-btn sr-btn-danger px-5 py-2.5 text-sm font-semibold inline-flex items-center gap-2 rounded-xl">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
         Delete My Data
-      </button>
+      </a>
     </div>
   </div>
 </div>

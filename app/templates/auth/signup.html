@@ -3,86 +3,97 @@
 {% block title %}Sign up – {{ app_name }}{% endblock %}
 
 {% block page_content %}
-<div class="max-w-md w-full space-y-8">
+<div class="max-w-md w-full space-y-6">
   <div class="text-center">
-    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 mb-4 dark:bg-emerald-900/20 dark:text-emerald-400">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 mb-4 shadow-lg shadow-indigo-500/10">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
     </div>
-    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create an account</h2>
-    <p class="text-gray-600 dark:text-gray-400 text-sm">Organise your university tasks and realistic workload</p>
+    <h2 class="text-2xl font-bold text-[#f9fafb] mb-1.5">Create an account</h2>
+    <p class="text-[#9ca3af] text-sm">Organise your university tasks and realistic workload</p>
   </div>
 
-  {% if errors.general %}
-  <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-100" role="alert">
-    {{ errors.general }}
+  <div class="sr-card bg-[#111827] border border-[#1f2937] rounded-2xl p-7 shadow-xl space-y-5">
+    {% if errors.general %}
+    <div class="bg-red-500/10 border border-red-500/25 text-[#f87171] px-4 py-3 rounded-xl text-sm" role="alert">
+      {{ errors.general }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/auth/signup" class="space-y-4" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Your name</label>
+        <input
+          type="text"
+          id="display_name"
+          name="display_name"
+          class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 {% if errors.display_name %}border-red-500/50{% endif %}"
+          value="{{ form_data.display_name or '' }}"
+          placeholder="Alex Rivera"
+          autocomplete="name"
+          required
+        >
+        {% if errors.display_name %}
+        <p class="text-xs text-[#f87171] font-medium mt-1">{{ errors.display_name }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Email address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 {% if errors.email %}border-red-500/50{% endif %}"
+          value="{{ form_data.email or '' }}"
+          placeholder="you@university.edu"
+          autocomplete="email"
+          required
+        >
+        {% if errors.email %}
+        <p class="text-xs text-[#f87171] font-medium mt-1">{{ errors.email }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-xl px-4 py-2.5 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 {% if errors.password %}border-red-500/50{% endif %}"
+          autocomplete="new-password"
+          required
+        >
+        {% if errors.password %}
+        <p class="text-xs text-[#f87171] font-medium mt-1">{{ errors.password }}</p>
+        {% else %}
+        <p class="text-xs text-[#9ca3af]">Must be at least 8 characters.</p>
+        {% endif %}
+      </div>
+
+      <button
+        type="submit"
+        class="sr-btn sr-btn-primary w-full py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg shadow-indigo-500/25 transition-all mt-2"
+      >
+        Sign up
+      </button>
+    </form>
+
+    <div class="relative py-2">
+      <div class="absolute inset-0 flex items-center">
+        <span class="w-full border-t border-[#1f2937]"></span>
+      </div>
+      <div class="relative flex justify-center text-xs uppercase">
+        <span class="bg-[#111827] px-3 text-[#9ca3af]">Already registered?</span>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-[#9ca3af]">
+      Already have an account?
+      <a href="/auth/login" class="font-semibold text-indigo-400 hover:text-purple-400">Log in</a>
+    </p>
   </div>
-  {% endif %}
-
-  <form method="post" action="/auth/signup" class="space-y-5" novalidate>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-    <div class="space-y-2">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your name</label>
-      <input
-        type="text"
-        id="display_name"
-        name="display_name"
-        class="sr-input {% if errors.display_name %}border-rose-500{% endif %} focus:ring-2 focus:ring-indigo-500/50"
-        value="{{ form_data.display_name or '' }}"
-        placeholder="Alex Rivera"
-        autocomplete="name"
-        required
-      >
-      {% if errors.display_name %}
-      <p class="sr-field-error">{{ errors.display_name }}</p>
-      {% endif %}
-    </div>
-
-    <div class="space-y-2">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        class="sr-input {% if errors.email %}border-rose-500{% endif %} focus:ring-2 focus:ring-indigo-500/50"
-        value="{{ form_data.email or '' }}"
-        placeholder="you@university.edu"
-        autocomplete="email"
-        required
-      >
-      {% if errors.email %}
-      <p class="sr-field-error">{{ errors.email }}</p>
-      {% endif %}
-    </div>
-
-    <div class="space-y-2">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="sr-input {% if errors.password %}border-rose-500{% endif %} focus:ring-2 focus:ring-indigo-500/50"
-        autocomplete="new-password"
-        required
-      >
-      {% if errors.password %}
-      <p class="sr-field-error">{{ errors.password }}</p>
-      {% else %}
-      <p class="text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters.</p>
-      {% endif %}
-    </div>
-
-    <button
-      type="submit"
-      class="sr-btn sr-btn-primary w-full py-3 text-sm font-semibold"
-    >
-      Sign up
-    </button>
-  </form>
-
-  <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-    Already have an account?
-    <a href="/auth/login" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">Log in</a>
-  </p>
 </div>
 {% endblock %}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="dark">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -12,15 +12,45 @@
       theme: {
         extend: {
           colors: {
+            main: '#0b0f19',
+            card: '#111827',
+            sidebar: '#111827',
+            border: '#1f2937',
+            heading: '#f9fafb',
+            secondary: '#9ca3af',
+            accent: {
+              DEFAULT: '#6366f1',
+              hover: '#8b5cf6',
+              from: '#6366f1',
+              to: '#8b5cf6',
+            },
             slate: {
-              900: '#0f172a',
-              800: '#1e293b',
-              700: '#334155',
+              950: '#0b0f19',
+              900: '#111827',
+              800: '#1f2937',
+              700: '#374151',
             },
-            blue: {
-              600: '#2563eb',
-              500: '#3b82f6',
+            gray: {
+              950: '#0b0f19',
+              900: '#111827',
+              800: '#1f2937',
+              700: '#374151',
+              600: '#6b7280',
+              500: '#9ca3af',
+              400: '#9ca3af',
+              300: '#d1d5db',
+              200: '#1f2937',
+              100: '#f9fafb',
+              50: '#0b0f19',
             },
+          },
+          backgroundImage: {
+            'accent-gradient': 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+            'accent-gradient-hover': 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+          },
+          boxShadow: {
+            'glow-accent': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
+            'card-dark': '0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px #1f2937',
           },
         },
       },
@@ -28,64 +58,85 @@
   </script>
   <link rel="stylesheet" href="/static/css/tailwind.css">
   <link rel="stylesheet" href="/static/css/polish.css">
+  <link rel="stylesheet" href="/static/css/globals.css">
   {% block head %}{% endblock %}
 </head>
-<body class="antialiased">
+<body class="antialiased bg-[#0b0f19] text-[#f9fafb]">
   <!-- Toast Container -->
   <div id="toast-container" class="sr-toast-container"></div>
 
   {% if current_user %}
   <!-- App Shell (Authenticated) -->
-  <div class="sr-app-layout">
+  <div class="sr-app-layout bg-[#0b0f19]">
     <!-- Sidebar -->
-    <aside class="sr-sidebar w-64 flex flex-col shrink-0 hidden lg:block" aria-label="Main Navigation">
-      <div class="sr-sidebar-header px-6 py-5 border-b border-gray-700">
-        <a href="/dashboard" class="sr-sidebar-brand flex items-center gap-2 text-white text-lg font-bold no-underline hover:no-underline">
+    <aside class="sr-sidebar w-64 flex flex-col shrink-0 hidden lg:block bg-[#111827] border-r border-[#1f2937]" aria-label="Main Navigation">
+      <div class="sr-sidebar-header px-6 py-5 border-b border-[#1f2937]">
+        <a href="/dashboard" class="sr-sidebar-brand flex items-center gap-2 text-[#f9fafb] text-lg font-bold no-underline hover:no-underline">
           <span class="text-indigo-400">🎯</span>
           {{ app_name }}
-          <span class="text-gray-400 text-xs mt-0.5 block">University Workload</span>
+          <span class="text-[#9ca3af] text-xs mt-0.5 block">University Workload</span>
         </a>
       </div>
-      <ul class="sr-nav flex-1 px-2 py-3 list-none space-y-1">
-        <li><a href="/dashboard" class="sr-nav-link {% if active_page == 'dashboard' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">📊</span> <span>Dashboard</span></a></li>
-        <li><a href="/tasks" class="sr-nav-link {% if active_page == 'tasks' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">✅</span> <span>Tasks</span></a></li>
-        <li><a href="/imports" class="sr-nav-link {% if active_page == 'imports' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">📥</span> <span>Imports</span></a></li>
-        <li><a href="/settings" class="sr-nav-link {% if active_page == 'settings' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">⚙️</span> <span>Settings</span></a></li>
-        <li><a href="/evaluation" class="sr-nav-link {% if active_page == 'evaluation' %}active{% else %}hover{% endif %}"><span class="text-indigo-300">📈</span> <span>Evaluation</span></a></li>
+      <ul class="sr-nav flex-1 px-3 py-4 list-none space-y-1.5">
+        <li>
+          <a href="/dashboard" class="sr-nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all {% if active_page == 'dashboard' %}active bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">
+            <span>📊</span> <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="/tasks" class="sr-nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all {% if active_page == 'tasks' %}active bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">
+            <span>✅</span> <span>Tasks</span>
+          </a>
+        </li>
+        <li>
+          <a href="/imports" class="sr-nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all {% if active_page == 'imports' %}active bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">
+            <span>📥</span> <span>Imports</span>
+          </a>
+        </li>
+        <li>
+          <a href="/settings" class="sr-nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all {% if active_page == 'settings' %}active bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">
+            <span>⚙️</span> <span>Settings</span>
+          </a>
+        </li>
+        <li>
+          <a href="/evaluation" class="sr-nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all {% if active_page == 'evaluation' %}active bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25{% else %}text-[#9ca3af] hover:text-[#f9fafb] hover:bg-[#1f2937]{% endif %}">
+            <span>📈</span> <span>Evaluation</span>
+          </a>
+        </li>
       </ul>
-      <div class="sr-sidebar-footer p-5 border-t border-gray-700">
+      <div class="sr-sidebar-footer p-5 border-t border-[#1f2937]">
         <form method="post" action="/auth/logout" class="space-y-3">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button type="submit" class="sr-btn sr-btn-secondary w-full text-sm py-2">
-            <span class="text-red-400">🚪</span> Log out
+            <span class="text-rose-400">🚪</span> Log out
           </button>
         </form>
-        <div class="pt-4 border-t border-gray-700">
-          <div class="text-gray-300 text-sm font-medium truncate">{{ current_user.display_name }}</div>
-          <div class="text-gray-500 text-xs truncate mt-0.5">{{ current_user.email }}</div>
+        <div class="pt-4 border-t border-[#1f2937]">
+          <div class="text-[#f9fafb] text-sm font-medium truncate">{{ current_user.display_name }}</div>
+          <div class="text-[#9ca3af] text-xs truncate mt-0.5">{{ current_user.email }}</div>
         </div>
       </div>
     </aside>
 
     <!-- Mobile Sidebar Overlay -->
-    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleMobileSidebar()"></div>
+    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden" onclick="toggleMobileSidebar()"></div>
 
     <!-- Main Content -->
-    <main class="sr-main-content bg-gray-50 min-h-screen" id="main-content">
+    <main class="sr-main-content bg-[#0b0f19] min-h-screen text-[#f9fafb]" id="main-content">
       <!-- Mobile Header -->
-      <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-        <button onclick="toggleMobileSidebar()" class="text-gray-600 hover:text-gray-900">
+      <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-[#111827] border-b border-[#1f2937]">
+        <button onclick="toggleMobileSidebar()" class="text-[#9ca3af] hover:text-[#f9fafb]" aria-label="Toggle navigation">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
-        <h1 class="text-lg font-bold text-gray-900">{% block page_title %}{{ app_name }}{% endblock %}</h1>
+        <h1 class="text-lg font-bold text-[#f9fafb]">{% block page_title %}{{ app_name }}{% endblock %}</h1>
         <div class="w-8"></div>
       </div>
 
       <div id="page-body">
   {% else %}
   <!-- Auth Pages (no sidebar) -->
-  <main class="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-    <div id="page-body">
+  <main class="min-h-screen bg-[#0b0f19] flex items-center justify-center px-4 py-8 text-[#f9fafb]">
+    <div id="page-body" class="w-full flex justify-center">
   {% endif %}
 
     {% block page_content %}{% endblock %}

@@ -103,6 +103,7 @@ def get_dashboard(request: Request, current_user: User = Depends(get_current_use
           <meta charset="UTF-8">
           <title>Dashboard – {APP_NAME}</title>
           <link rel="stylesheet" href="/static/css/style.css">
+          <link rel="stylesheet" href="/static/css/globals.css">
         </head>
         <body>
           <div class="app-layout">

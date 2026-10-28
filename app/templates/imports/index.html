@@ -7,52 +7,52 @@
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Imports</h1>
-      <p class="text-gray-600 dark:text-gray-400 text-sm">Import WhatsApp chat exports or paste conversation text.</p>
+      <h1 class="text-2xl font-bold text-[#f9fafb] mb-1">Imports</h1>
+      <p class="text-[#9ca3af] text-sm">Import WhatsApp chat exports or paste conversation text.</p>
     </div>
   </div>
 
   {% if error %}
-  <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-100" role="alert">
+  <div class="bg-red-500/10 border border-red-500/25 text-[#f87171] px-4 py-3 rounded-xl text-sm" role="alert">
     {{ error }}
   </div>
   {% endif %}
 
   {% if success %}
-  <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-100" role="alert">
+  <div class="bg-emerald-500/10 border border-emerald-500/25 text-[#34d399] px-4 py-3 rounded-xl text-sm" role="alert">
     Import completed successfully.
-      </div>
-    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- Import Form Card -->
-  <div id="import-form-card" class="sr-card p-6">
-    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-5">New Import</h2>
+  <div id="import-form-card" class="sr-card bg-[#111827] border border-[#1f2937] p-6 rounded-2xl shadow-xl">
+    <h2 class="text-lg font-bold text-[#f9fafb] mb-5">New Import</h2>
     <form method="post" action="/imports" enctype="multipart/form-data" id="import-form" class="space-y-5">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-      <div class="space-y-2">
-        <label class="sr-label">Paste chat text</label>
+      <div class="space-y-1.5">
+        <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Paste chat text</label>
         <textarea
           id="paste-text"
           name="paste_text"
-          class="sr-textarea focus:ring-2 focus:ring-indigo-500/50"
-          rows="8"
+          class="sr-textarea bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] placeholder-gray-500 rounded-xl px-4 py-3 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25"
+          rows="7"
           placeholder="Paste a WhatsApp export or plain text here...">{{ form_data.paste_text or '' }}</textarea>
-        <p class="text-xs text-gray-500 dark:text-gray-400">WhatsApp exports are detected automatically. Otherwise, text is split into messages at blank lines.</p>
+        <p class="text-xs text-[#9ca3af]">WhatsApp exports are detected automatically. Otherwise, text is split into messages at blank lines.</p>
       </div>
 
-      <div class="space-y-2">
-        <label class="sr-label">Or upload a .txt export (max 2 MB, UTF-8)</label>
-        <input type="file" id="upload-file" name="upload_file" accept=".txt" class="sr-input">
+      <div class="space-y-1.5">
+        <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Or upload a .txt export (max 2 MB, UTF-8)</label>
+        <input type="file" id="upload-file" name="upload_file" accept=".txt" class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2 w-full file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20">
       </div>
 
-      <div class="space-y-2">
-        <label class="sr-label">Reference date for pasted text (optional)</label>
-        <input type="date" id="reference-date" name="reference_date" class="sr-input focus:ring-2 focus:ring-indigo-500/50" value="{{ form_data.reference_date or '' }}">
-        <p class="text-xs text-gray-500 dark:text-gray-400">Used as sent date when pasting plain text. Ignored for WhatsApp exports.</p>
+      <div class="space-y-1.5">
+        <label class="sr-label text-xs uppercase tracking-wider text-[#9ca3af]">Reference date for pasted text (optional)</label>
+        <input type="date" id="reference-date" name="reference_date" class="sr-input bg-[#0b0f19] border border-[#1f2937] text-[#f9fafb] rounded-xl px-3.5 py-2 w-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25" value="{{ form_data.reference_date or '' }}">
+        <p class="text-xs text-[#9ca3af]">Used as sent date when pasting plain text. Ignored for WhatsApp exports.</p>
       </div>
 
-      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold" id="import-submit">
+      <button type="submit" class="sr-btn sr-btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25" id="import-submit">
         Import Messages
       </button>
     </form>
@@ -60,24 +60,24 @@
 
   <!-- Import Summary -->
   {% if summary %}
-  <div class="sr-card p-6 border-l-4 border-emerald-500">
-    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Import Summary</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-lg p-4">
-        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Source</p>
-        <p class="text-gray-900 dark:text-white">{{ summary.batch.source_name }}</p>
+  <div class="sr-card bg-[#111827] border border-[#1f2937] p-6 rounded-2xl border-l-4 border-l-emerald-500 shadow-xl">
+    <h2 class="text-lg font-bold text-[#f9fafb] mb-4">Import Summary</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#0b0f19] border border-[#1f2937] rounded-xl p-4">
+        <p class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider">Source</p>
+        <p class="text-[#f9fafb] font-medium mt-1 truncate">{{ summary.batch.source_name }}</p>
       </div>
-      <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-lg p-4">
-        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Messages</p>
-        <p class="text-gray-900 dark:text-white">{{ summary.message_count }}</p>
+      <div class="bg-[#0b0f19] border border-[#1f2937] rounded-xl p-4">
+        <p class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider">Messages</p>
+        <p class="text-[#f9fafb] font-bold text-xl mt-1">{{ summary.message_count }}</p>
       </div>
-      <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-lg p-4">
-        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Distinct Senders</p>
-        <p class="text-gray-900 dark:text-white">{{ summary.sender_count }}</p>
+      <div class="bg-[#0b0f19] border border-[#1f2937] rounded-xl p-4">
+        <p class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider">Distinct Senders</p>
+        <p class="text-[#f9fafb] font-bold text-xl mt-1">{{ summary.sender_count }}</p>
       </div>
-      <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-lg p-4">
-        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Date Range</p>
-        <p class="text-gray-900 dark:text-white">
+      <div class="bg-[#0b0f19] border border-[#1f2937] rounded-xl p-4">
+        <p class="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider">Date Range</p>
+        <p class="text-[#f9fafb] font-medium text-sm mt-1">
           {% if summary.earliest_date and summary.latest_date %}
           {{ summary.earliest_date.strftime('%d %b %Y') }} to {{ summary.latest_date.strftime('%d %b %Y') }}
           {% else %}
@@ -87,66 +87,67 @@
       </div>
     </div>
 
-    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mt-6 mb-3">Preview</h3>
-    <div class="overflow-x-auto">
+    <h3 class="text-sm font-semibold text-[#f9fafb] mt-6 mb-3">Preview</h3>
+    <div class="overflow-x-auto rounded-xl border border-[#1f2937]">
       <table class="sr-table w-full text-sm">
         <thead>
-          <tr class="text-left">
-            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Sent At</th>
-            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Sender</th>
-            <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Message</th>
+          <tr class="text-left border-b border-[#1f2937] bg-[#111827]">
+            <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Sent At</th>
+            <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Sender</th>
+            <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Message</th>
           </tr>
         </thead>
         <tbody>
           {% for m in summary.preview_messages %}
-          <tr class="border-b border-gray-100 dark:border-gray-700">
-            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ m.sent_at.strftime('%d %b %Y %H:%M') if m.sent_at else '–' }}</td>
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ m.sender_alias }}</td>
-            <td class="px-4 py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ m.text }}</td>
+          <tr class="border-b border-[#1f2937] hover:bg-[#1f2937]/50 transition-colors">
+            <td class="px-4 py-3 text-[#9ca3af]">{{ m.sent_at.strftime('%d %b %Y %H:%M') if m.sent_at else '–' }}</td>
+            <td class="px-4 py-3 text-[#f9fafb] font-medium">{{ m.sender_alias }}</td>
+            <td class="px-4 py-3 text-[#9ca3af] max-w-xs truncate">{{ m.text }}</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <p class="mt-5"><a href="/imports" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">Import another chat →</a></p>
+    <p class="mt-5"><a href="/imports" class="text-sm font-semibold text-indigo-400 hover:text-purple-400">Import another chat →</a></p>
   </div>
   {% endif %}
 
   <!-- Previous Imports -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Previous Imports</h2>
+    <h2 class="text-lg font-bold text-[#f9fafb]">Previous Imports</h2>
     {% if batches and batches|length > 5 %}
-    <a href="/imports" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">View all →</a>
+    <a href="/imports" class="text-sm font-semibold text-indigo-400 hover:text-purple-400">View all →</a>
     {% endif %}
   </div>
 
   {% if batches %}
-  <div class="overflow-x-auto">
+  <div class="overflow-x-auto rounded-xl border border-[#1f2937] shadow-lg">
     <table class="sr-table w-full text-sm">
       <thead>
-        <tr class="text-left">
-          <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Source</th>
-          <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Messages</th>
-          <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Imported At</th>
-          <th class="font-medium text-gray-500 dark:text-gray-400 px-4 py-3">Actions</th>
+        <tr class="text-left bg-[#111827] border-b border-[#1f2937]">
+          <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Source</th>
+          <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Messages</th>
+          <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Imported At</th>
+          <th class="font-semibold text-xs uppercase tracking-wider text-[#9ca3af] px-4 py-3">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for b in batches %}
-        <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ b.source_name }}</td>
-          <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ b.message_count }}</td>
-          <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ b.created_at.strftime('%d %b %Y %H:%M') }}</td>
+        <tr class="border-b border-[#1f2937] hover:bg-[#1f2937]/50 transition-colors">
+          <td class="px-4 py-3 font-medium text-[#f9fafb]">{{ b.source_name }}</td>
+          <td class="px-4 py-3 text-[#9ca3af]">{{ b.message_count }}</td>
+          <td class="px-4 py-3 text-[#9ca3af]">{{ b.created_at.strftime('%d %b %Y %H:%M') }}</td>
           <td class="px-4 py-3">
-            <form method="post" action="/imports/{{ b.id }}/extract" class="inline flex items-center gap-2">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="sr-btn sr-btn-primary px-3 py-1.5 text-xs" id="extract-btn-{{ b.id }}" onclick="return setButtonLoading(this, true)">
-                <svg class="w-3 h-3 mr-1 animate-spin" onclick="return false" style="display:none;"></svg>
-                Extract
-              </button>
-            </form>
-            <a href="/review/{{ b.id }}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-600 dark:border-gray-700">Review</a>
-            <a href="/imports/{{ b.id }}/delete" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-800">Delete</a>
+            <div class="flex items-center gap-2">
+              <form method="post" action="/imports/{{ b.id }}/extract" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="sr-btn sr-btn-primary px-3 py-1.5 text-xs bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg shadow-md shadow-indigo-500/25" id="extract-btn-{{ b.id }}" onclick="return setButtonLoading(this, true)">
+                  Extract
+                </button>
+              </form>
+              <a href="/review/{{ b.id }}" class="sr-btn sr-btn-secondary px-3 py-1.5 text-xs bg-[#1f2937] hover:bg-[#374151] text-[#f9fafb] border border-[#374151] rounded-lg">Review</a>
+              <a href="/imports/{{ b.id }}/delete" class="sr-btn px-3 py-1.5 text-xs text-[#f87171] bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 rounded-lg">Delete</a>
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -154,12 +155,12 @@
     </table>
   </div>
   {% else %}
-  <div class="sr-empty-state">
-    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">No imports yet</h3>
-    <p class="text-gray-600 dark:text-gray-400 mb-6">Import a WhatsApp chat export or paste text to get started.</p>
-      </div>
-      {% endif %}
-    </div>
+  <div class="sr-empty-state bg-[#111827] border border-dashed border-[#1f2937] rounded-xl p-10 text-center">
+    <h3 class="text-lg font-bold text-[#f9fafb] mb-2">No imports yet</h3>
+    <p class="text-[#9ca3af] mb-6">Import a WhatsApp chat export or paste text to get started.</p>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
