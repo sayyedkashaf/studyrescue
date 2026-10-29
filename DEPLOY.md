@@ -37,7 +37,7 @@ Set these in the **Render Dashboard → Your Service → Environment**:
 | `CORS_ALLOW_CREDENTIALS` | No | Allow cookies in CORS requests | `true` |
 | `FRONTEND_URL` | No | Your app URL (used for CORS) | `https://studyrescue-vzhj.onrender.com` |
 | `LLM_PROVIDER` | No | LLM provider | `gemini` |
-| `LLM_MODEL` | No | Model name | `gemini-3.5-flash-lite` |
+| `LLM_MODEL` | No | Model name | `gemini-3.1-flash-lite` |
 | `LLM_API_KEY` | Yes | LLM API key | `AIza...` |
 | `GEMINI_API_KEY` | Yes | Gemini API key | `AIza...` |
 | `PORT` | No | Render sets this automatically | `8000` |
@@ -104,7 +104,7 @@ The app uses SQLAlchemy with SQLite by default. For production on Render:
 The extraction pipeline uses Gemini by default. Set:
 ```
 LLM_PROVIDER=gemini
-LLM_MODEL=gemini-3.5-flash-lite
+LLM_MODEL=gemini-3.1-flash-lite
 LLM_API_KEY=<your-gemini-key>
 GEMINI_API_KEY=<your-gemini-key>
 ```

@@ -47,7 +47,7 @@ FRONTEND_URL: str | None = os.getenv("FRONTEND_URL", None) or None
 
 # ── LLM configuration ──────────────────────────────────────────────────
 LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini")
-LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
+LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-3.1-flash-lite")
 LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", LLM_MODEL)

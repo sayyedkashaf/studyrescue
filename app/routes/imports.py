@@ -279,6 +279,31 @@ def extract_tasks_endpoint(
         candidates_found = len(run_candidates)
         suppressed_jokes = sum(1 for c in run_candidates if c.is_joke_or_hypothetical and c.suppressed_reason == 'joke_or_hypothetical')
 
+        # If all chunks failed and no candidates were extracted, show the unavailable error page
+        if run.status == 'failed' and candidates_found == 0:
+            batch.status = 'failed'
+            db.commit()
+            return templates.TemplateResponse(
+                request=request,
+                name='imports/extraction_summary.html',
+                context={
+                    'app_name': APP_NAME,
+                    'current_user': current_user,
+                    'active_page': 'imports',
+                    'csrf_token': generate_csrf_token(),
+                    'batch': batch,
+                    'error': 'AI extraction is temporarily unavailable. You can add tasks manually.',
+                    'summary': {
+                        'candidates_found': 0,
+                        'suppressed_jokes': 0,
+                        'hallucinations_rejected': 0,
+                        'chunks_failed': 1,
+                        'candidates': [],
+                    },
+                },
+                status_code=200,
+            )
+
         extraction_summary = {
             'candidates_found': candidates_found,
             'suppressed_jokes': suppressed_jokes,

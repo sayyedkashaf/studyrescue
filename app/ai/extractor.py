@@ -50,6 +50,7 @@ def extract_batch(db, user_id: int, batch_id: int) -> ExtractionRun:
     chunk_size = 20
     total_hallucinations = 0
     total_chunks_failed = 0
+    total_chunks = (len(messages) + chunk_size - 1) // chunk_size if messages else 0
 
     for i in range(0, len(messages), chunk_size):
         chunk = messages[i:i + chunk_size]
@@ -57,6 +58,9 @@ def extract_batch(db, user_id: int, batch_id: int) -> ExtractionRun:
         total_hallucinations += chunk_halluc
         if chunk_failed:
             total_chunks_failed += 1
+
+    if total_chunks > 0 and total_chunks_failed == total_chunks:
+        run.status = 'failed'
 
     duration_ms = int((time.time() - start) * 1000)
     run.duration_ms = duration_ms
@@ -116,14 +120,11 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
     try:
         response_text = complete_json(prompts.SYSTEM_PROMPT, user_prompt)
     except LLMUnavailableError as e:
-        # Mark extraction run as failed and re-raise for route handling
-        run.status = 'failed'
         run.error_message = str(e)
         db.commit()
-        raise
+        chunk_failed = True
+        return (hallucination_count, chunk_failed)
     except Exception as e:
-        # Record failure for this chunk but continue processing other chunks
-        run.status = 'failed'
         run.error_message = str(e)
         db.commit()
         chunk_failed = True
@@ -140,7 +141,6 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
             response_text2 = complete_json(prompts.SYSTEM_PROMPT + '\n' + repair_prompt, user_prompt)
             data = _clean_and_parse_json(response_text2)
         except Exception as e:
-            run.status = 'failed'
             run.error_message = f'Failed to parse LLM response as JSON: {e}'
             db.commit()
             chunk_failed = True
@@ -149,7 +149,6 @@ def _process_chunk(db, run: ExtractionRun, chunk: List[Message]) -> tuple[int, b
     try:
         valid_candidates, hallucination_count = _validate_with_hallucination_count(data, chunk)
     except Exception as e:
-        run.status = 'failed'
         run.error_message = f'Validation failed: {e}'
         db.commit()
         chunk_failed = True

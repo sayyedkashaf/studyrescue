@@ -141,7 +141,7 @@
             <div class="flex items-center gap-2">
               <form method="post" action="/imports/{{ b.id }}/extract" class="inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="sr-btn sr-btn-primary px-3 py-1.5 text-xs bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg shadow-md shadow-indigo-500/25" id="extract-btn-{{ b.id }}" onclick="return setButtonLoading(this, true)">
+                <button type="submit" class="sr-btn sr-btn-primary px-3 py-1.5 text-xs bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg shadow-md shadow-indigo-500/25" id="extract-btn-{{ b.id }}" onclick="setButtonLoading(this, true); return true;">
                   Extract
                 </button>
               </form>
